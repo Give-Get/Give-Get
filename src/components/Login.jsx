@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import '../App.css';
 
 export default function Login() {
-  const [type, setType] = useState('individual');
+  const [type, setType] = useState('donor');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -30,8 +30,8 @@ export default function Login() {
             <div className="user-type btn-group mb-3" role="group">
               <button
                 type="button"
-                className={`btn ${type === 'individual' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                onClick={() => setType('individual')}
+                className={`btn ${type === 'donor' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                onClick={() => setType('donor')}
               >
                 Donor
               </button>
@@ -63,12 +63,12 @@ export default function Login() {
               </div>
             </form>
             <div className="text-center mt-3 small text-muted">
-                      Don't have an account? <a href="#signup" className="text-decoration-none">Sign up</a>
+                      Don't have an account? <Link to={type === 'donor' ? '/register-donor' : '/register-organization'} className="text-decoration-none" style={{ color: '#1db95eff' }}>Sign up</Link>
             </div>
           </div>
 
           <div className="card-footer text-center small text-muted">
-            Signing in as <strong>{type === 'individual' ? 'Individual' : 'Organization'}</strong>
+            Signing in as <strong>{type === 'donor' ? 'Donor' : 'Organization'}</strong>
           </div>
         </div>
       </main>

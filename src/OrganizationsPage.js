@@ -1,15 +1,12 @@
-import React, { useState } from 'react';
-import './OrganizationsPage.css';
+import React, { useState } from "react";
+import "./OrganizationsPage.css";
 
-// ✅ Base organization JSON structure (mirrors MongoDB + backend OrganizationModel)
-const baseOrgTemplate = {
-  _id: "0",
-  image_url: "",
+const BASE_ORG_TEMPLATE = {
+  image_address_url: "",
   type: { shelter: false, charity: false },
   EIN: "",
   name: "",
   address: "",
-  location: { lat: 0, lng: 0 },
   ammenities: {
     accessible: false,
     lgbtq_only: false,
@@ -31,242 +28,319 @@ const baseOrgTemplate = {
     good_criminal_record_standing: false,
     sobriety_required: false,
     showers: false,
-    id_required: false
+    id_required: false,
   },
   needs: {},
   hours: {
-    monday: "0000-2359",
-    tuesday: "0000-2359",
-    wednesday: "0000-2359",
-    thursday: "0000-2359",
-    friday: "0000-2359",
-    saturday: "0000-2359",
-    sunday: "0000-2359"
+    monday: { start: "0900", end: "1700" },
+    tuesday: { start: "0900", end: "1700" },
+    wednesday: { start: "0900", end: "1700" },
+    thursday: { start: "0900", end: "1700" },
+    friday: { start: "0900", end: "1700" },
+    saturday: { start: "0000", end: "0000" },
+    sunday: { start: "0000", end: "0000" },
   },
   description: "",
-  contact: {
-    phone: "",
-    email: "",
-    website: ""
-  },
-  verified: false,
-  timestamp: ""
+  contact: { phone: "", email: "", website: "" },
 };
 
+const TIME_OPTIONS = [
+  "0000", "0100", "0200", "0300", "0400", "0500", "0600", "0700", "0800",
+  "0900", "1000", "1100", "1200", "1300", "1400", "1500", "1600",
+  "1700", "1800", "1900", "2000", "2100", "2200", "2300", "2359"
+];
+
 function OrganizationsPage() {
-  const [organization, setOrganization] = useState(baseOrgTemplate);
-  const [organizations, setOrganizations] = useState([]);
+  const [org, setOrg] = useState(BASE_ORG_TEMPLATE);
+  const [needsList, setNeedsList] = useState([]);
+  const [submitted, setSubmitted] = useState([]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
-    // Determine if field belongs to nested object
-    if (name in organization.ammenities) {
-      setOrganization({
-        ...organization,
-        ammenities: {
-          ...organization.ammenities,
-          [name]: type === 'checkbox' ? checked : value
-        }
-      });
-    } else if (name in organization.contact) {
-      setOrganization({
-        ...organization,
-        contact: { ...organization.contact, [name]: value }
-      });
-    } else if (name in organization.hours) {
-      setOrganization({
-        ...organization,
-        hours: { ...organization.hours, [name]: value || "0000-2359" }
-      });
+    const val = type === "checkbox" ? checked : value;
+
+    if (name in org.contact) {
+      setOrg({ ...org, contact: { ...org.contact, [name]: val } });
+    } else if (name in org.ammenities) {
+      setOrg({ ...org, ammenities: { ...org.ammenities, [name]: val } });
     } else {
-      setOrganization({
-        ...organization,
-        [name]: type === 'checkbox' ? checked : value
-      });
+      setOrg({ ...org, [name]: val });
     }
   };
+
+  const handleHourChange = (day, field, value) => {
+    setOrg({
+      ...org,
+      hours: { ...org.hours, [day]: { ...org.hours[day], [field]: value } },
+    });
+  };
+
+  const addNeed = () => {
+    setNeedsList([
+      ...needsList,
+      { item: "", category: "", needed: 0, have: 0, urgency: "medium" },
+    ]);
+  };
+
+  const updateNeed = (i, field, val) => {
+    const updated = [...needsList];
+    updated[i][field] = val;
+    setNeedsList(updated);
+  };
+
+  const removeNeed = (i) => setNeedsList(needsList.filter((_, idx) => i !== idx));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate org type
-    if (!organization.type.shelter && !organization.type.charity) {
-      alert('Please select at least one organization type (Shelter or Charity)');
-      return;
-    }
+    const needsObj = {};
+    needsList.forEach((n) => {
+      if (n.item)
+        needsObj[n.item] = {
+          category: n.category,
+          needed: parseInt(n.needed) || 0,
+          have: parseInt(n.have) || 0,
+          urgency: n.urgency,
+        };
+    });
 
-    // Normalize languages (comma-separated input)
-    if (typeof organization.ammenities.languages === "string") {
-      organization.ammenities.languages = organization.ammenities.languages
-        ? organization.ammenities.languages.split(',').map(lang => lang.trim())
-        : ['english'];
-    }
-
-    // Timestamp
-    const updatedOrg = { ...organization, timestamp: new Date().toISOString() };
+    const payload = { ...org, needs: needsObj };
 
     try {
-      // ✅ Call validation API (not create)
-      const response = await fetch('http://localhost:8000/api/org/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedOrg)
+      const res = await fetch("http://localhost:8000/api/org/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
-
-      const result = await response.json();
-
+      const result = await res.json();
       if (result.success) {
-        const verifiedOrg = {
-          ...updatedOrg,
-          verified: result.verification_status.verified,
-          trust_score: result.verification_status.trust_score,
-          trust_level: result.verification_status.trust_level
-        };
-
-        setOrganizations([...organizations, verifiedOrg]);
-
-        alert(
-          `✅ Organization validated successfully!\n\n` +
-          `Organization ID: ${result.organization_id}\n` +
-          `Verification Status: ${result.verification_status.status}\n` +
-          `Trust Score: ${result.verification_status.trust_score}/100\n` +
-          `Trust Level: ${result.verification_status.trust_level}\n` +
-          `Verified: ${result.verification_status.verified ? 'Yes' : 'No'}\n\n` +
-          `${result.verification_status.status === 'pending_review' ?
-            'Your organization will be reviewed by an administrator.' :
-            result.verification_status.verified ?
-            'Your organization has been verified and approved!' :
-            'Your organization has been approved but requires additional verification.'}`
-        );
+        alert("✅ Organization validated successfully!");
+        setSubmitted([...submitted, payload]);
+        setOrg(BASE_ORG_TEMPLATE);
+        setNeedsList([]);
       } else {
-        alert('❌ Validation Error: ' + (result.message || 'Unknown error'));
+        alert("❌ Validation failed: " + result.message);
       }
-
-    } catch (error) {
-      console.error('Backend error:', error);
-      alert(
-        '⚠️ Could not connect to backend validator.\n\n' +
-        'Please make sure FastAPI is running:\n' +
-        'uvicorn api:app --reload'
-      );
+    } catch (err) {
+      alert("⚠️ Could not connect to backend validator.");
     }
-
-    // Reset form to base template
-    setOrganization(baseOrgTemplate);
   };
 
   return (
     <div className="organizations-page">
       <h1>Organization Registration</h1>
-      <p className="subtitle">Complete ALL fields below to register your organization</p>
+      <p className="subtitle">Complete all fields below</p>
 
-      {/* FORM */}
       <form onSubmit={handleSubmit} className="org-form">
+
+        {/* TYPE */}
         <fieldset>
           <legend>Organization Type *</legend>
-          <label>
-            <input
-              type="checkbox"
-              name="shelter"
-              checked={organization.type.shelter}
-              onChange={(e) =>
-                setOrganization({
-                  ...organization,
-                  type: { ...organization.type, shelter: e.target.checked }
-                })
-              }
-            />
-            Shelter
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              name="charity"
-              checked={organization.type.charity}
-              onChange={(e) =>
-                setOrganization({
-                  ...organization,
-                  type: { ...organization.type, charity: e.target.checked }
-                })
-              }
-            />
-            Charity
-          </label>
+          <div className="checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                checked={org.type.shelter}
+                onChange={(e) =>
+                  setOrg({ ...org, type: { ...org.type, shelter: e.target.checked } })
+                }
+              /> Shelter
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={org.type.charity}
+                onChange={(e) =>
+                  setOrg({ ...org, type: { ...org.type, charity: e.target.checked } })
+                }
+              /> Charity
+            </label>
+          </div>
         </fieldset>
 
+        {/* BASIC INFO */}
         <fieldset>
           <legend>Basic Information</legend>
-          <input
-            type="text"
-            name="EIN"
-            value={organization.EIN}
-            placeholder="EIN"
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="name"
-            value={organization.name}
-            placeholder="Organization Name"
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="address"
-            value={organization.address}
-            placeholder="Full Address"
-            onChange={handleChange}
-          />
-          <textarea
-            name="description"
-            value={organization.description}
-            placeholder="Description"
-            onChange={handleChange}
-          />
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>EIN</label>
+              <input name="EIN" value={org.EIN} onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label>Organization Name</label>
+              <input name="name" value={org.name} onChange={handleChange} />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Full Address</label>
+            <input name="address" value={org.address} onChange={handleChange} />
+          </div>
+
+          <div className="form-group">
+            <label>Image URL</label>
+            <input name="image_address_url" value={org.image_address_url} onChange={handleChange} />
+          </div>
+
+          <div className="form-group">
+            <label>Description</label>
+            <textarea name="description" value={org.description} onChange={handleChange} />
+          </div>
         </fieldset>
 
+        {/* CONTACT */}
         <fieldset>
-          <legend>Contact</legend>
-          <input
-            type="text"
-            name="phone"
-            value={organization.contact.phone}
-            placeholder="Phone"
-            onChange={handleChange}
-          />
-          <input
-            type="email"
-            name="email"
-            value={organization.contact.email}
-            placeholder="Email"
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="website"
-            value={organization.contact.website}
-            placeholder="Website"
-            onChange={handleChange}
-          />
+          <legend>Contact Information</legend>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Phone Number</label>
+              <input name="phone" value={org.contact.phone} onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label>Email</label>
+              <input name="email" value={org.contact.email} onChange={handleChange} />
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Website</label>
+            <input name="website" value={org.contact.website} onChange={handleChange} />
+          </div>
         </fieldset>
 
-        <button type="submit" className="submit-btn">
-          Validate & Register
-        </button>
+        {/* HOURS */}
+        <fieldset>
+          <legend>Hours of Operation</legend>
+          {Object.keys(org.hours).map((day) => (
+            <div key={day} className="form-row">
+              <div className="form-group">
+                <label>{day.charAt(0).toUpperCase() + day.slice(1)} Start Time</label>
+                <select
+                  value={org.hours[day].start}
+                  onChange={(e) => handleHourChange(day, "start", e.target.value)}
+                >
+                  {TIME_OPTIONS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>{day.charAt(0).toUpperCase() + day.slice(1)} End Time</label>
+                <select
+                  value={org.hours[day].end}
+                  onChange={(e) => handleHourChange(day, "end", e.target.value)}
+                >
+                  {TIME_OPTIONS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ))}
+        </fieldset>
+
+        {/* AMENITIES */}
+        <fieldset>
+          <legend>Amenities</legend>
+          <div className="checkbox-grid">
+            {Object.entries(org.ammenities).map(([key, val]) => (
+              typeof val === "boolean" && (
+                <label key={key}>
+                  <input
+                    type="checkbox"
+                    name={key}
+                    checked={val}
+                    onChange={handleChange}
+                  />{" "}
+                  {key.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </label>
+              )
+            ))}
+          </div>
+          
+          <div className="amenity-inputs">
+            {Object.entries(org.ammenities).map(([key, val]) => (
+              typeof val !== "boolean" && key !== "languages" && (
+                <div key={key} className="form-group compact">
+                  <label>{key.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</label>
+                  <input
+                    type={typeof val === "number" ? "number" : "text"}
+                    name={key}
+                    value={val}
+                    onChange={handleChange}
+                  />
+                </div>
+              )
+            ))}
+            <div className="form-group compact">
+              <label>Languages</label>
+              <input
+                type="text"
+                name="languages"
+                value={org.ammenities.languages.join(", ")}
+                onChange={(e) => 
+                  setOrg({
+                    ...org,
+                    ammenities: {
+                      ...org.ammenities,
+                      languages: e.target.value.split(",").map(s => s.trim())
+                    }
+                  })
+                }
+                placeholder="E.g., English, Spanish"
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        {/* NEEDS */}
+        <fieldset>
+          <legend>Needs</legend>
+          {needsList.map((need, i) => (
+            <div key={i} className="need-row">
+              <div className="need-fields">
+                <div className="form-group compact">
+                  <label>Item Name</label>
+                  <input value={need.item} onChange={(e) => updateNeed(i, "item", e.target.value)} />
+                </div>
+                <div className="form-group compact">
+                  <label>Category</label>
+                  <input value={need.category} onChange={(e) => updateNeed(i, "category", e.target.value)} />
+                </div>
+                <div className="form-group compact">
+                  <label>Needed</label>
+                  <input type="number" value={need.needed} onChange={(e) => updateNeed(i, "needed", e.target.value)} />
+                </div>
+                <div className="form-group compact">
+                  <label>Have</label>
+                  <input type="number" value={need.have} onChange={(e) => updateNeed(i, "have", e.target.value)} />
+                </div>
+                <div className="form-group compact">
+                  <label>Urgency</label>
+                  <select value={need.urgency} onChange={(e) => updateNeed(i, "urgency", e.target.value)}>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+              <button type="button" className="remove-need-btn" onClick={() => removeNeed(i)} title="Remove this need">×</button>
+            </div>
+          ))}
+          <button type="button" onClick={addNeed}>+ Add Need</button>
+        </fieldset>
+
+        <button type="submit" className="submit-btn">Validate & Submit</button>
       </form>
 
-      {/* DISPLAY VALIDATED ORGANIZATIONS */}
       <div className="organizations-list">
-        <h2>Validated Organizations ({organizations.length})</h2>
-        {organizations.map((org, idx) => (
-          <div key={idx} className="org-card">
-            <h3>{org.name}</h3>
-            <p><strong>EIN:</strong> {org.EIN}</p>
-            <p><strong>Address:</strong> {org.address}</p>
-            <p><strong>Verified:</strong> {org.verified ? '✅ Yes' : '❌ No'}</p>
-            <p><strong>Trust Score:</strong> {org.trust_score}/100</p>
-            <p><strong>Trust Level:</strong> {org.trust_level}</p>
+        <h2>Submitted Organizations ({submitted.length})</h2>
+        {submitted.map((o, i) => (
+          <div key={i} className="org-card">
+            <h3>{o.name}</h3>
+            <p><strong>Address:</strong> {o.address}</p>
+            <p><strong>Type:</strong> {o.type.shelter ? "Shelter" : "Charity"}</p>
+            <p><strong>Contact:</strong> {o.contact.email}</p>
           </div>
         ))}
       </div>

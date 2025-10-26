@@ -337,4 +337,32 @@ class VerificationService:
                     'id_uploaded': org_data.get("verified", False),
                     'ein': org.ein
                 })
+    def verify_organizations_bulk(self, org_list: List[dict]) -> List[dict]:
+        """Accepts full org records and returns verification results"""
+        results = []
 
+        for org in org_list:
+            user_data = {
+                'name': org.get('name', ''),
+                'email': org.get('contact', {}).get('email', ''),
+                'phone': org.get('contact', {}).get('phone', ''),
+                'address': org.get('address', ''),
+                'ein': org.get('EIN', ''),
+                'id_uploaded': org.get('verified', False)
+            }
+
+            verification = self.verify_individual(user_data)
+
+            results.append({
+                'org_id': org.get('_id'),
+                'name': org.get('name'),
+                'email': user_data['email'],
+                'phone': user_data['phone'],
+                'trust_score': verification['score'],
+                'trust_level': verification['trust_level'],
+                'verification_status': verification['status'],
+                'verified': verification['trust_level'] == 'TRUSTED',
+                'checks': verification['checks']
+            })
+
+        return results
