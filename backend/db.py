@@ -47,6 +47,16 @@ def update_organization(id:str, new_json:dict):
     things_changed: dictionary with changes you wish to make in ket,value format
     """
     update_database(id, new_json, "organizations")
+    user_json =  {
+        "_id": f"{id}",
+        "name": new_json["name"], 
+        "charity": new_json["type"]["charity"],
+        "shelter": new_json["type"]["shelter"],
+        "donor": False,
+        "phone_number": new_json["contact"]["phone"],
+        "email": new_json["contact"]["email"]
+    }
+    update_database(id, user_json, "users")
     return
 
 def create_user(new_json, id=None):
@@ -58,8 +68,7 @@ def create_user(new_json, id=None):
         id = generate_id()
     
     update_user(id, new_json)
-
-    pass
+    return
 
 def create_organization(new_json):
     """
@@ -71,12 +80,13 @@ def create_organization(new_json):
     pass
 
 def generate_id():
-    
-    return
-
-def add_user_and_org(type, object_json):
-    
-    return
+    collection = db.app_statistics
+    result = collection.find_one_and_update(
+        {"_id": "68fdc40a6d0189be52ed220f"},
+        {"$inc": {"next_id": 1}},
+        return_document=False
+    )
+    return str(result["next_id"])
 
 def collect_user(id:str):
     """
@@ -108,19 +118,20 @@ def get_orgs_within_radius(location, radius, org_type = None):
     radius: (miles)
     org_type: type of organization you want to query: none by default
     """
-    lat, lon = location['lat'], location['long'] 
+    lat, lon = location['lat'], location['lng'] 
     all_orgs_dict = db.organizations.find()
 
     orgs_within_radius = []
     for org in all_orgs_dict:
         org_lat, org_lon = get_org_coords(org)
-        if calculate_distance(lat, lon, org_lat, org_lon) < radius:
-            orgs_within_radius.append(org)
+        dist = calculate_distance(lat, lon, org_lat, org_lon)
+        if dist < radius:
+            orgs_within_radius.append((dist, org))
 
     if not org_type:
-        return orgs_within_radius
+        return [(d, {o["_id"]: o}) for d, o in orgs_within_radius]
     else: 
-        return [o for o in orgs_within_radius if o['type'][org_type] == True]
+        return [(d, {o["_id"]: o}) for d, o in orgs_within_radius if o['type'][org_type] == True]
 
 
 def get_org_coords(org_dict):
@@ -128,7 +139,7 @@ def get_org_coords(org_dict):
         return None
     
     lat = org_dict['location']['lat']
-    lon = org_dict['location']['lon']
+    lon = org_dict['location']['lng']
     return lat, lon
 
 
@@ -139,10 +150,22 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
     return R * 2 * atan2(sqrt(a), sqrt(1 - a))
 
+def get_account_id(email: str, password: str):
+    """
+    Retrieves the user's account _id based on email and password.
+    Returns the _id if a matching user is found, otherwise raises an error.
 
+    Args:
+        email (str): User's email address
+        password (str): Plaintext password (or hashed if stored that way)
 
-def order_by_matching():
-
-    return
-
-
+    Returns:
+        str: The user's _id as a string
+    """
+    collection = db.users
+    user = collection.find_one({"email": email, "password": password})
+    
+    if user:
+        return user["_id"]
+    else:
+        raise ValueError("Invalid email or password.")

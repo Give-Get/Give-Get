@@ -6,7 +6,8 @@
         "shelter": false,
         "donor": false,
         "phone_number": "814-555-1234",
-        "email": "info@foodbank.org"
+        "email": "info@foodbank.org",
+        "password": "wfew-f2@"
     },
     {
         "_id": "2",
@@ -17,7 +18,7 @@
         "items_donating": [{"item": "jackets", "quantity":1, "description": "...", "category": "clothing"}],
         "phone_number":"123-545-9876",
         "email": "alice@gmail.com",
-        "location": { "lat": 0, "lng": 0}
+        "password": "aliceYoWsg37" 
     },
     {
         "_id": "4",
@@ -26,6 +27,7 @@
         "shelter": true,
         "donor": false,
         "phone_number": "123-456-7890",
-        "email": "shelteremail@domain.tld"
+        "email": "shelteremail@domain.tld",
+        "password": "yoShelter37WsgYo"
     }
 ]
