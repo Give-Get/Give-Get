@@ -101,36 +101,37 @@ export default function InNeedMain() {
     }
   }, []);
 
-  useEffect(() => {
-    if (!userLocation) return;
+  const fetchMatches = async () => {
+    if (!userLocation) {
+      console.log("No user location available yet");
+      return;
+    }
 
-    const fetchMatches = async () => {
-      // Create a copy of formData for person_filters
-      const personFiltersPayload = {
-        ...formData,
-        max_travel_distance_miles: radius
-      };
-
-      // Remove empty optional fields
-      if (!personFiltersPayload.days_homeless) delete personFiltersPayload.days_homeless;
-      if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
-
-      try {
-        // Structure the request to match Pydantic model
-        const results = await getPeopleMatches({
-          location: userLocation,
-          radius: radius,
-          person_filters: personFiltersPayload
-        });
-        setLocations(results);
-      } catch (err) {
-        console.error("Error fetching matches:", err);
-        setLocations(null);
-      }
+    // Create a copy of formData for person_filters
+    const personFiltersPayload = {
+      ...formData,
+      max_travel_distance_miles: radius
     };
 
-    fetchMatches();
-  }, [userLocation, radius, formData]);
+    // Remove empty optional fields
+    if (!personFiltersPayload.days_homeless) delete personFiltersPayload.days_homeless;
+    if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
+
+    try {
+      console.log("Fetching matches...");
+      // Structure the request to match Pydantic model
+      const results = await getPeopleMatches({
+        location: userLocation,
+        radius: radius,
+        person_filters: personFiltersPayload
+      });
+      setLocations(results);
+      console.log("Matches loaded successfully!");
+    } catch (err) {
+      console.error("Error fetching matches:", err);
+      setLocations(null);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -469,6 +470,7 @@ export default function InNeedMain() {
             <button
               className="btn btn-primary add-item-button"
               style={{ width: '100%', padding: '1rem' }}
+              onClick={fetchMatches}
             >
               Filter
             </button>
