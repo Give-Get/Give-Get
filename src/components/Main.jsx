@@ -3,6 +3,7 @@ import Location from './Location';
 import Donation from './Donation';
 import AddItemForm from './AddItemForm';
 import { useNavigate } from 'react-router-dom';
+import { CSSTransition } from 'react-transition-group';
 import '../App.css';
 import GoogleMapDisplay from './GoogleMapDisplay';
 
@@ -32,21 +33,26 @@ export default function Main() {
     setShowAddForm(false);
   }
 
+  async function deleteDonation(id) {
+    setDonations(prev => prev.filter(donation => donation.id !== id));
+  }
+
   return (
     <div className="main-container">
       <aside className="sidebar">
         <div className="sidebar-top">
           <h4 className="mb-3">What items are you donating?</h4>
-          {showAddForm ? (
-            <AddItemForm onAdd={addDonation} />
-          ) : (
-            <button
-              className="btn btn-primary add-item-button"
-              onClick={() => setShowAddForm(true)}
-            >
-              + Add item
-            </button>
-          )}
+          <div style={{ position: 'relative', width: '100%' }}>
+            {showAddForm ? (
+              <AddItemForm onAdd={addDonation} />
+            ) : (
+              <button
+                className="btn btn-primary add-item-button"
+                onClick={() => setShowAddForm(true)}>
+                + Add item
+              </button>
+            )}
+          </div>
         </div>
 
         {!showAddForm && (
@@ -59,6 +65,7 @@ export default function Main() {
                 size={donation.size}
                 category={donation.category}
                 description={donation.description}
+                onClick={() => deleteDonation(donation.id)}
               />
             ))}
           </div>
