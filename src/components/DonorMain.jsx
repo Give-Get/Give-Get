@@ -9,7 +9,7 @@ import GoogleMapDisplay from './GoogleMapDisplay';
 async function getSupplyMatches(requestData) {
   // Use your Render URL from environment variables
   // Make sure to create a .env.local file with REACT_APP_API_URL=https://your-service-name.onrender.com
-  const API_URL = `${process.env.REACT_APP_API_URL}/api/match-supplies`;
+  const API_URL = `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/match-supplies`;
 
   try {
     const response = await fetch(API_URL, {

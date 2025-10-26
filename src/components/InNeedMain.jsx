@@ -6,7 +6,7 @@ import './InNeedMain.css';
 import GoogleMapDisplay from './GoogleMapDisplay';
 
 async function getPeopleMatches(requestData) {
-  const API_URL = `${process.env.REACT_APP_API_URL}/api/match-people`;
+  const API_URL = `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/match-people`;
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -80,37 +80,47 @@ export default function InNeedMain() {
     }
   }, []);
 
+  // Auto-fetch matches when userLocation is set
+  useEffect(() => {
+    if (userLocation) {
+      fetchMatches();
+    }
+  }, [userLocation]);
+
     const fetchMatches = async () => {
+    console.log("\n" + "=".repeat(80));
+    console.log("🚀 INNEEDMAIN - fetchMatches called");
+    console.log("=".repeat(80));
+    
     if (!userLocation) {
+      console.log("❌ No user location available");
       return;
     }
 
-    // Create a copy of formData for person_filters
-    const personFiltersPayload = {
-      ...formData,
-      max_travel_distance_miles: radius
+    // DON'T send person_filters by default - only send location and radius
+    // This will show ALL nearby organizations without filtering
+    const requestPayload = {
+      location: userLocation,
+      radius: radius
+      // person_filters removed - will be added back when survey filtering is implemented
     };
 
-    // Remove empty optional fields
-    if (!personFiltersPayload.days_homeless) delete personFiltersPayload.days_homeless;
-    if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
+    console.log("📤 Sending to API:");
+    console.log(JSON.stringify(requestPayload, null, 2));
 
-    const requestPayload = {
-        location: userLocation,
-      radius: radius,
-      person_filters: personFiltersPayload
-      };
-
-      try {
+    try {
       const results = await getPeopleMatches(requestPayload);
+      console.log("\n📥 Received from API:");
       console.log("✅ SUCCESS - Matches received!");
-      console.log("Number of organizations matched:", Object.keys(results.ranked_organizations || {}).length);
-      console.log("Results:", results);
+      console.log("📊 Matches found:", results.matches_found);
+      console.log("🏢 Organizations returned:", Object.keys(results.ranked_organizations || {}).length);
+      console.log("Organization names:", Object.values(results.ranked_organizations || {}).map(org => org.name));
       setLocations(results.ranked_organizations);
-      } catch (err) {
-      console.error("❌ ERROR fetching matches:", err);
+    } catch (err) {
+      console.error("\n❌ ERROR fetching matches:", err);
       setLocations(null);
     }
+    console.log("=".repeat(80) + "\n");
   };
 
   const handleInputChange = (e) => {
@@ -462,6 +472,7 @@ export default function InNeedMain() {
             <button
               className="btn btn-primary add-item-button"
               style={{ width: '100%', padding: '1rem' }}
+              onClick={fetchMatches}
             >
               Filter
             </button>
@@ -605,6 +616,17 @@ export default function InNeedMain() {
               </select>
             </h4>
               <div className="location-list pt-2">
+                {/* Debug info */}
+                <div style={{padding: '10px', background: '#f0f0f0', marginBottom: '10px', fontSize: '12px'}}>
+                  <strong>DEBUG INFO:</strong><br/>
+                  locations is: {locations ? 'NOT NULL' : 'NULL'}<br/>
+                  Number of locations: {locations ? Object.keys(locations).length : 0}<br/>
+                  Location keys: {locations ? JSON.stringify(Object.keys(locations)) : 'none'}
+                </div>
+                
+                {!locations && <p>No locations data yet. Click Filter to load.</p>}
+                {locations && Object.keys(locations).length === 0 && <p>No organizations found. Try increasing the radius.</p>}
+                
                 {locations && Object.keys(locations).map(locationId => {
                   const location = locations[locationId];
                   
