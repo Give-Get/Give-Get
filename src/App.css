@@ -14,7 +14,7 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #ffffff;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -35,4 +35,133 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+body {
+  margin: 0;
+  font-family: var(--ff-base);
+  background: #ffffff;
+  color: var(--bs-body-color);
+  letter-spacing: 0.01em;
+}
+
+.btn-primary,
+.btn-primary:focus,
+.btn-primary:focus-visible,
+.btn-primary:active,
+.btn-primary.active,
+.show > .btn-primary.dropdown-toggle {
+  background-color: #2ee079 !important;
+  border-color: #2ee079 !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+.btn-primary:hover {
+  background-color: #27b65e !important;
+  border-color: #27b65e !important;
+  color: #000000 !important;
+}
+
+/* Pressed state */
+/* .btn-primary:active,
+.btn-primary.active {
+  background-color: #095a2d !important;
+  border-color: #095a2d !important;
+  box-shadow: none !important;
+} */
+
+@font-face {
+  font-family: "Quicksand_Book";
+  src: url('../public/assets/fonts/Quicksand_Book.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cocogoose_Bold";
+  src: url('../public/assets/fonts/Cocogoose-Pro-Bold-trial.ttf') format('truetype');
+  font-weight: 700;
+  font-style: bold;
+  font-display: swap;
+}
+
+:root {
+  --ff-base: "Quicksand_Book", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --bs-body-bg: #ffffff;
+  --bs-body-color: #000000;
+  --bs-primary: #2ee079; 
+  --bs-secondary: #b5b5b5;
+  --bs-success: #2ee079;
+  --bs-danger: #f87171;
+  --bs-info: #60a5fa;
+  --bs-light: #f8fafc;
+  --bs-dark: #0f1724;
+  --tracking-base: 0.01em;
+}
+
+h1 {
+  font-family: "Cocogoose_Bold", var(--ff-base);
+  font-weight: 700;
+  letter-spacing: calc(var(--tracking-base) * 0.6);
+}
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  pointer-events: none;
+  z-index: 60;
+  background: linear-gradient(180deg, rgba(255,255,255,0.00), rgba(0,0,0,0.00));
+}
+.brand {
+  pointer-events: auto;
+  font-family: var(--ff-base);
+  font-weight: 700;
+  color: var(--bs-dark);
+  background: transparent;
+  padding: 0.25rem 0.5rem;
+  letter-spacing: calc(var(--tracking-base) * 0.8);
+  font-size: 1.25rem;
+}
+
+.app-main {
+  min-height: 100vh;
+  padding-top: 64px; 
+  background: linear-gradient(180deg, var(--bs-body-bg), #f6f8fb);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.login-card .card-body {
+  padding: 1.75rem;
+}
+
+.login-card .card-title {
+  color: var(--bs-dark);
+  font-family: var(--ff-base);
+  letter-spacing: calc(var(--tracking-base) * 0.6);
+}
+
+.user-type .btn {
+  min-width: 120px;
+  font-weight: 600;
+  font-family: var(--ff-base);
+  letter-spacing: var(--tracking-base);
+}
+
+@media (max-width: 480px) {
+  .brand { font-size: 1rem; }
+  .login-card { margin: 0 1rem; }
 }
