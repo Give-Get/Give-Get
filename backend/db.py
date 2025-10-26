@@ -69,6 +69,8 @@ def create_user(new_json, id=None):
     """
     if not id:
         id = generate_id()
+
+    new_json["_id"] = str(id)
     
     update_user(id, new_json)
     return
@@ -79,6 +81,7 @@ def create_organization(new_json: dict):
     Geocodes the address — raises ValueError if address cannot be found.
     """
     id = generate_id()
+
 
     address = new_json.get("address", "").strip()
 
@@ -91,7 +94,7 @@ def create_organization(new_json: dict):
     except (GeocoderTimedOut, GeocoderUnavailable) as e:
         raise ValueError(f"Geocoding service unavailable or timed out: {str(e)}")
 
-    new_json["_id"] = id
+    new_json["_id"] = str(id)
     update_organization(id, new_json)
     return id
 
@@ -130,9 +133,17 @@ def collect_organization(id:str):
 
 def get_orgs_within_radius(location, radius, org_type = None):
     """
-    location: {"lat": 0, "long": 0} <----- is actually the location of the donor, will need to add location entry to user 
-    radius: (miles)
-    org_type: type of organization you want to query, input as "{"shelter": false, "charity": true}": none by default
+    Retrieve organizations within a specified radius from a location.
+    
+    Args:
+        location: {"lat": float, "lng": float} - Location to search from
+        radius: int - Search radius in miles
+        org_type: dict (optional) - Organization type filter
+            Example: {"shelter": True, "charity": False} or {"shelter": True, "charity": True}
+    
+    Returns:
+        list[tuple]: List of (distance_miles, organization_dict) tuples
+            Example: [(2.5, {...org_data...}), (5.1, {...org_data...}), ...]
     """
     lat, lon = location['lat'], location['lng'] 
     all_orgs_dict = db.organizations.find()

@@ -1,0 +1,237 @@
+/* Main Container */
+.donor-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.donor-container {
+  max-width: 580px;
+  width: 100%;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 3rem 3.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Sign up Title */
+.signup-title {
+  margin: 0 0 2rem 0;
+  font-size: 2rem;
+  font-weight: 300;
+  color: #1a1a1a;
+  text-align: center;
+  letter-spacing: -0.3px;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Form */
+.donor-form {
+  padding: 0;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+  font-weight: 400;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 400;
+  background: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.form-group input::placeholder {
+  color: #a8a8a8;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #2d6a4f;
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+}
+
+.form-group input.error {
+  border-color: #ed4956;
+}
+
+.error-message {
+  display: block;
+  color: #ed4956;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+
+/* Buttons */
+.btn-primary {
+  width: 100%;
+  padding: 0.875rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #6fba87;
+  color: white;
+  margin-top: 0.5rem;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.btn-primary:hover {
+  background: #5ba873;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* Login Link */
+.login-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  color: #5a5a5a;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.login-link a {
+  color: #4a90e2;
+  font-weight: 500;
+  text-decoration: none;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+/* Signing As Text */
+.signing-as {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e8e8e8;
+  font-size: 0.9rem;
+  color: #737373;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Success Screen */
+.success-container {
+  text-align: center;
+  padding: 3rem 2.5rem;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #2d6a4f;
+  color: white;
+  font-size: 3rem;
+  line-height: 80px;
+  margin: 0 auto 1.5rem auto;
+  font-weight: 300;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.success-container h2 {
+  color: #262626;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.success-subtext {
+  color: #737373;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.registration-summary {
+  background: #fafafa;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.registration-summary p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: #262626;
+  font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.registration-summary p:first-child {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .donor-page {
+    padding: 1rem;
+  }
+
+  .donor-container {
+    padding: 2.5rem 2rem;
+    border-radius: 12px;
+  }
+
+  .signup-title {
+    font-size: 1.75rem;
+  }
+
+  .success-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .success-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 2.5rem;
+    line-height: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .donor-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .signup-title {
+    font-size: 1.5rem;
+  }
+}

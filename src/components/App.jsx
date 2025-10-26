@@ -2,7 +2,9 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Login';
 import Main from './Main';
+import Landing from './Landing';
 import OrganizationsPage from '../OrganizationsPage';
+import DonorPage from './DonorPage';
 
 /** Simple auth guard using localStorage flag 'auth' (replace with real auth) */
 function RequireAuth({ children }) {
@@ -13,9 +15,11 @@ function RequireAuth({ children }) {
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<RequireAuth><Main /></RequireAuth>} />
+      <Route path="/app" element={<RequireAuth><Main /></RequireAuth>} />
       <Route path="/register-organization" element={<OrganizationsPage />} />
+      <Route path="/register-donor" element={<DonorPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
