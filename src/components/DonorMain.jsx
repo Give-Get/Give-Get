@@ -161,12 +161,7 @@ export default function Main() {
     };
     console.log("   Normalized donation:", newDonation);
 
-    setDonations(prev => {
-      const updated = [...prev, newDonation];
-      console.log("   New donations array:", updated);
-      console.log("   ⚠️  This will trigger useEffect and call fetchMatches!");
-      return updated;
-    });
+    setDonations(prev => [...prev, newDonation]);
     // hide the form and return to the list view
     setShowAddForm(false);
   }
