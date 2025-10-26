@@ -101,7 +101,7 @@ export default function InNeedMain() {
     }
   }, []);
 
-  const fetchMatches = async () => {
+    const fetchMatches = async () => {
     if (!userLocation) {
       console.log("No user location available yet");
       return;
@@ -117,18 +117,32 @@ export default function InNeedMain() {
     if (!personFiltersPayload.days_homeless) delete personFiltersPayload.days_homeless;
     if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
 
-    try {
-      console.log("Fetching matches...");
-      // Structure the request to match Pydantic model
-      const results = await getPeopleMatches({
+    const requestPayload = {
         location: userLocation,
-        radius: radius,
-        person_filters: personFiltersPayload
-      });
+      radius: radius,
+      person_filters: personFiltersPayload
+    };
+
+    console.log("=".repeat(80));
+    console.log("🚀 FRONTEND REQUEST PAYLOAD - SENDING TO API");
+    console.log("=".repeat(80));
+    console.log("Full Request Object:");
+    console.log(JSON.stringify(requestPayload, null, 2));
+    console.log("\n--- BREAKDOWN ---");
+    console.log("1. LOCATION:", userLocation);
+    console.log("2. RADIUS:", radius);
+    console.log("3. PERSON_FILTERS:");
+    console.log(JSON.stringify(personFiltersPayload, null, 2));
+    console.log("=".repeat(80));
+
+    try {
+      const results = await getPeopleMatches(requestPayload);
+      console.log("✅ SUCCESS - Matches received!");
+      console.log("Number of organizations matched:", Object.keys(results || {}).length);
+      console.log("Results:", results);
       setLocations(results);
-      console.log("Matches loaded successfully!");
-    } catch (err) {
-      console.error("Error fetching matches:", err);
+      } catch (err) {
+      console.error("❌ ERROR fetching matches:", err);
       setLocations(null);
     }
   };
@@ -142,13 +156,13 @@ export default function InNeedMain() {
   };
 
   const selectedLocation =
-    selectedLocationId && locations
-      ? locations[selectedLocationId]
-      : null;
+  selectedLocationId && locations
+    ? locations[selectedLocationId]
+    : null;
 
   return (
     <div className="main-container">
-      <aside className="sidebar">
+<aside className="sidebar">
         <div className="sidebar-top" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h4 className="mb-3">What are you looking for?</h4>
           
@@ -404,7 +418,7 @@ export default function InNeedMain() {
                 min="18"
                 max="100"
               />
-            </div>
+          </div>
 
             <div className="form-check mb-2">
               <input
@@ -415,7 +429,7 @@ export default function InNeedMain() {
                 onChange={handleInputChange}
               />
               <label className="form-check-label">LGBTQ+ Identity</label>
-            </div>
+        </div> 
 
             <div className="form-section mb-3">
               <label className="form-label">Language</label>
@@ -464,7 +478,7 @@ export default function InNeedMain() {
                 <option value="yes">Yes</option>
               </select>
             </div>
-          </div>
+        </div>
 
           <div style={{ padding: '0 1rem', paddingBottom: '1rem' }}>
             <button
@@ -483,11 +497,11 @@ export default function InNeedMain() {
           <div className="map-wrapper">
             <div className="map-container">
               <GoogleMapDisplay
-                routeToId={routeToId}
-                locations={locations}
-                userLocation={userLocation}
-                selectedLocationId={selectedLocationId}
-                onMarkerClick={handleSelectLocation}
+              routeToId={routeToId}
+              locations={locations}
+              userLocation={userLocation}
+              selectedLocationId={selectedLocationId}
+              onMarkerClick={handleSelectLocation}
                 onInfoClose={handleClearRoute}
               />
             </div>
