@@ -59,6 +59,7 @@ export default function InNeedMain() {
     veteran_status: 'no',
     criminal_record: 'no',
     sobriety: 'no',
+    has_id: true,
     needs_food: false,
     needs_clothing: false,
     needs_medical: false,
@@ -97,9 +98,9 @@ export default function InNeedMain() {
     if (!userLocation) return;
 
     const fetchMatches = async () => {
+      // Create a copy of formData for person_filters
       const personFiltersPayload = {
         ...formData,
-        location: userLocation,
         max_travel_distance_miles: radius
       };
 
@@ -108,7 +109,10 @@ export default function InNeedMain() {
       if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
 
       try {
+        // Structure the request to match Pydantic model
         const results = await getPeopleMatches({
+          location: userLocation,
+          radius: radius,
           person_filters: personFiltersPayload
         });
         setLocations(results);
