@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Location from './Location';
-import Donation from './Donation';
-import AddItemForm from './AddItemForm';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
 import GoogleMapDisplay from './GoogleMapDisplay';
 
-async function getSupplyMatches(requestData) {
-  // Use your Render URL from environment variables
-  // Make sure to create a .env.local file with REACT_APP_API_URL=https://your-service-name.onrender.com
+async function getPeopleMatches(requestData) {
   const API_URL = `${process.env.REACT_APP_API_URL}/api/match-people`;
 
   try {
@@ -28,41 +24,54 @@ async function getSupplyMatches(requestData) {
   }
 }
 
-export default function Main() {
+export default function InNeedMain() {
   const [userLocation, setUserLocation] = useState({ lat: 40.8148, lng: -77.8653 });
-
-  // Tracks which location card is clicked/highlighted
   const [selectedLocationId, setSelectedLocationId] = useState(null);
-
-  // Tracks which location to actively route to on the map
   const [routeToId, setRouteToId] = useState(null);
-
   const navigate = useNavigate();
-  const [donations, setDonations] = useState([]);
-  const [showAddForm, setShowAddForm] = useState(false);
+  
+  const [radius, setRadius] = useState(25);
+  const [locations, setLocations] = useState(null);
 
-  const [radius, setRadius] = useState(1); // Default to 1 mile to match your <h4>
-  const [locations, setLocations] = useState(null); // This will hold the API results
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Form state for person_filters
+  const [formData, setFormData] = useState({
+    needs_housing: true,
+    beds_needed: 1,
+    needs_handicapped_access: false,
+    owns_pets: false,
+    days_homeless: '',
+    preferred_duration_days: 30,
+    prefers_family_rooming: false,
+    can_pay_fees: false,
+    max_affordable_fee: 0,
+    lgbtq_identity: false,
+    prefers_medical_support: false,
+    prefers_counseling: false,
+    prefers_meals_provided: false,
+    prefers_showers: false,
+    duration_flexibility: 'flexible',
+    urgency_level: 'within_week',
+    max_travel_distance_miles: 25,
+    gender: 'other',
+    age: 25,
+    language: 'english',
+    immigration_status: '',
+    veteran_status: 'no',
+    criminal_record: 'no',
+    sobriety: 'no',
+    needs_food: false,
+    needs_clothing: false,
+    needs_medical: false,
+    needs_mental_health: false
+  });
 
-  function handleLogout() {
-    localStorage.removeItem('auth');
-    navigate('/login', { replace: true });
-  }
-
-// --- Add event handlers ---
-
-  // This sets the *selected* location when a user clicks on a card
   const handleSelectLocation = useCallback((id) => {
     setSelectedLocationId(id);
     setRouteToId(id);
   }, []);
 
-
-  // This clears the route from the map
   const handleClearRoute = () => {
-    setSelectedLocationId(null)
+    setSelectedLocationId(null);
     setRouteToId(null);
   };
 
@@ -82,127 +91,392 @@ export default function Main() {
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
-  }, []); // Runs once on component mount
-
-  console.log(userLocation)
+  }, []);
 
   useEffect(() => {
-    // Don't run if we don't have the user's location yet
     if (!userLocation) return;
 
     const fetchMatches = async () => {
-      setLoading(true);
-      setError(null);
-      
-      // Format the 'donations' state to match the API's 'donor_items' schema
-      const donorItemsPayload = (donations && donations.length > 0)
-        ? { items: donations.map(d => ({
-              category: d.category,
-              item: d.itemName,
-              quantity: d.quantity
-            })) }
-        : null;
-
-      const requestData = {
+      const personFiltersPayload = {
+        ...formData,
         location: userLocation,
-        radius: parseInt(radius, 10),
-        donor_items: donorItemsPayload
+        max_travel_distance_miles: radius
       };
 
+      // Remove empty optional fields
+      if (!personFiltersPayload.days_homeless) delete personFiltersPayload.days_homeless;
+      if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
+
       try {
-        const data = await getSupplyMatches(requestData);
-        // Store the ranked_organizations object in your 'locations' state
-        setLocations(data.ranked_organizations); 
+        const results = await getPeopleMatches({
+          person_filters: personFiltersPayload
+        });
+        setLocations(results);
       } catch (err) {
-        setError(err.message || "An unknown error occurred.");
-        setLocations(null); // Clear old results on error
-      } finally {
-        setLoading(false);
+        console.error("Error fetching matches:", err);
+        setLocations(null);
       }
     };
 
     fetchMatches();
-    
-  // Re-run this effect if any of these three dependencies change
-  }, [donations, radius, userLocation]);
+  }, [userLocation, radius, formData]);
 
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value
+    }));
+  };
 
-  async function addDonation(donation) {
-    // normalize/ensure fields and create an id
-    const newDonation = {
-      id: Date.now(),
-      itemName: donation.itemName || 'Unnamed item',
-      quantity: Number(donation.quantity) || 1,
-      size: donation.size || '',
-      category: donation.category || '',
-      description: donation.description || ''
-    };
-
-    setDonations(prev => [...prev, newDonation]);
-    // hide the form and return to the list view
-    setShowAddForm(false);
-  }
-
-  async function deleteDonation(id) {
-    setDonations(prev => prev.filter(donation => donation.id !== id));
-  }
-
-  // Derive the selected location object for convenience
   const selectedLocation =
-  selectedLocationId && locations
-    ? locations[selectedLocationId]
-    : null;
+    selectedLocationId && locations
+      ? locations[selectedLocationId]
+      : null;
 
   return (
     <div className="main-container">
-<aside className="sidebar">
-        <div className="sidebar-top">
+      <aside className="sidebar">
+        <div className="sidebar-top" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h4 className="mb-3">What are you looking for?</h4>
-          <div style={{ position: 'relative', width: '100%' }}>
-            {showAddForm ? (
-              <AddItemForm onAdd={addDonation} onBack={() => setShowAddForm(false)}/>
-            ) : (
-              <button
-                className="btn btn-primary add-item-button"
-                onClick={() => setShowAddForm(true)}>
-                + Add item
-              </button>
+          
+          <div className="survey-form" style={{ flex: 1, overflowY: 'auto', padding: '0 1rem', marginBottom: '1rem' }}>
+            {/* Primary Need */}
+            <div className="form-section mb-3">
+              <label className="form-label fw-bold">I need:</label>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="needs_housing"
+                  checked={formData.needs_housing === true}
+                  onChange={() => setFormData(prev => ({ ...prev, needs_housing: true }))}
+                />
+                <label className="form-check-label">Housing/Shelter</label>
+              </div>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="needs_housing"
+                  checked={formData.needs_housing === false}
+                  onChange={() => setFormData(prev => ({ ...prev, needs_housing: false }))}
+                />
+                <label className="form-check-label">Resources (Food, Clothing, etc.)</label>
+              </div>
+            </div>
+
+            {/* Housing-specific fields */}
+            {formData.needs_housing && (
+              <>
+                <div className="form-section mb-3">
+                  <label className="form-label">Beds Needed</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm"
+                    name="beds_needed"
+                    value={formData.beds_needed}
+                    onChange={handleInputChange}
+                    min="1"
+                  />
+                </div>
+
+                <div className="form-section mb-3">
+                  <label className="form-label">Preferred Stay Duration (days)</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm"
+                    name="preferred_duration_days"
+                    value={formData.preferred_duration_days}
+                    onChange={handleInputChange}
+                    min="1"
+                  />
+                </div>
+
+                <div className="form-section mb-3">
+                  <label className="form-label">Days Homeless (optional)</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm"
+                    name="days_homeless"
+                    value={formData.days_homeless}
+                    onChange={handleInputChange}
+                    min="0"
+                    placeholder="Optional"
+                  />
+                </div>
+
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="needs_handicapped_access"
+                    checked={formData.needs_handicapped_access}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Need Handicapped Access</label>
+                </div>
+
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="owns_pets"
+                    checked={formData.owns_pets}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Have Pets</label>
+                </div>
+
+                <hr className="my-3" />
+                <h6 className="fw-bold mb-2">Preferences (Optional)</h6>
+
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="prefers_family_rooming"
+                    checked={formData.prefers_family_rooming}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Prefer Family Rooming</label>
+                </div>
+
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="prefers_medical_support"
+                    checked={formData.prefers_medical_support}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Prefer Medical Support</label>
+                </div>
+
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="prefers_counseling"
+                    checked={formData.prefers_counseling}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Prefer Counseling</label>
+                </div>
+
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="prefers_meals_provided"
+                    checked={formData.prefers_meals_provided}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Prefer Meals Provided</label>
+                </div>
+
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="prefers_showers"
+                    checked={formData.prefers_showers}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Prefer Showers</label>
+                </div>
+
+                <div className="form-section mb-3">
+                  <label className="form-label">Can Pay Fees?</label>
+                  <select className="form-select form-select-sm" name="can_pay_fees" value={formData.can_pay_fees} onChange={e => setFormData(prev => ({ ...prev, can_pay_fees: e.target.value === 'true' }))}>
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                  </select>
+                </div>
+
+                {formData.can_pay_fees && (
+                  <div className="form-section mb-3">
+                    <label className="form-label">Max Affordable Fee ($)</label>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm"
+                      name="max_affordable_fee"
+                      value={formData.max_affordable_fee}
+                      onChange={handleInputChange}
+                      min="0"
+                    />
+                  </div>
+                )}
+              </>
             )}
-          </div>
-        </div> 
 
-        <div className="donation-list mx-4">
-          {!showAddForm && (
-            donations.map(donation => (
-              <Donation 
-                key={donation.id}
-                itemName={donation.itemName}
-                quantity={donation.quantity}
-                size={donation.size}
-                category={donation.category}
-                description={donation.description}
-                onClick={() => deleteDonation(donation.id)}
+            {/* Resource needs (for charity matching) */}
+            {!formData.needs_housing && (
+              <>
+                <h6 className="fw-bold mb-2">What do you need?</h6>
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="needs_food"
+                    checked={formData.needs_food}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Food</label>
+                </div>
+
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="needs_clothing"
+                    checked={formData.needs_clothing}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Clothing</label>
+                </div>
+
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="needs_medical"
+                    checked={formData.needs_medical}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Medical Supplies</label>
+                </div>
+
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="needs_mental_health"
+                    checked={formData.needs_mental_health}
+                    onChange={handleInputChange}
+                  />
+                  <label className="form-check-label">Mental Health Support</label>
+                </div>
+              </>
+            )}
+
+            <hr className="my-3" />
+            <h6 className="fw-bold mb-2">Personal Information</h6>
+
+            <div className="form-section mb-3">
+              <label className="form-label">Urgency</label>
+              <select className="form-select form-select-sm" name="urgency_level" value={formData.urgency_level} onChange={handleInputChange}>
+                <option value="immediate">Immediate</option>
+                <option value="within_week">Within a Week</option>
+                <option value="within_month">Within a Month</option>
+              </select>
+            </div>
+
+            <div className="form-section mb-3">
+              <label className="form-label">Gender</label>
+              <select className="form-select form-select-sm" name="gender" value={formData.gender} onChange={handleInputChange}>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other/Prefer not to say</option>
+              </select>
+            </div>
+
+            <div className="form-section mb-3">
+              <label className="form-label">Age</label>
+              <input
+                type="number"
+                className="form-control form-control-sm"
+                name="age"
+                value={formData.age}
+                onChange={handleInputChange}
+                min="18"
+                max="100"
               />
-            ))
-          )}
-        </div>
+            </div>
 
-        <div className="sidebar-bottom mt-auto">
-          <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>Logout</button>
+            <div className="form-check mb-2">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                name="lgbtq_identity"
+                checked={formData.lgbtq_identity}
+                onChange={handleInputChange}
+              />
+              <label className="form-check-label">LGBTQ+ Identity</label>
+            </div>
+
+            <div className="form-section mb-3">
+              <label className="form-label">Language</label>
+              <input
+                type="text"
+                className="form-control form-control-sm"
+                name="language"
+                value={formData.language}
+                onChange={handleInputChange}
+                placeholder="e.g., english, spanish"
+              />
+            </div>
+
+            <div className="form-section mb-3">
+              <label className="form-label">Veteran?</label>
+              <select className="form-select form-select-sm" name="veteran_status" value={formData.veteran_status} onChange={handleInputChange}>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+
+            <div className="form-section mb-3">
+              <label className="form-label">Immigration Status (optional)</label>
+              <select className="form-select form-select-sm" name="immigration_status" value={formData.immigration_status} onChange={handleInputChange}>
+                <option value="">Prefer not to say</option>
+                <option value="citizen">Citizen</option>
+                <option value="permanent_resident">Permanent Resident</option>
+                <option value="temporary_resident">Temporary Resident</option>
+                <option value="refugee">Refugee</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div className="form-section mb-3">
+              <label className="form-label">Criminal Record?</label>
+              <select className="form-select form-select-sm" name="criminal_record" value={formData.criminal_record} onChange={handleInputChange}>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+
+            <div className="form-section mb-3">
+              <label className="form-label">Currently Sober?</label>
+              <select className="form-select form-select-sm" name="sobriety" value={formData.sobriety} onChange={handleInputChange}>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ padding: '0 1rem', paddingBottom: '1rem' }}>
+            <button
+              className="btn btn-primary add-item-button"
+              style={{ width: '100%', padding: '1rem' }}
+            >
+              Filter
+            </button>
+          </div>
         </div>
       </aside>
 
       <main className="main-content">
-        <div className="content-column">
-          <div className="media-wrap">
-            <div className="media-map">
+        <div className="main-content-wrapper">
+          <div className="map-wrapper">
+            <div className="map-container">
               <GoogleMapDisplay
-              routeToId={routeToId}
-              locations={locations}
-              userLocation={userLocation}
-              selectedLocationId={selectedLocationId}
-              onMarkerClick={handleSelectLocation}
-              onInfoClose={handleClearRoute}/>
+                routeToId={routeToId}
+                locations={locations}
+                userLocation={userLocation}
+                selectedLocationId={selectedLocationId}
+                onMarkerClick={handleSelectLocation}
+                onInfoClose={handleClearRoute}
+              />
             </div>
           </div>
         </div>
