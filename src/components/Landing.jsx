@@ -1,34 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../Landing.css';
 
 export default function Landing() {
-  const [aboutData, setAboutData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Fetch about us data from backend
-    fetch('http://localhost:8000/api/about')
-      .then(res => res.json())
-      .then(data => {
-        setAboutData(data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching about data:', error);
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="landing-loading">
-        <div className="spinner"></div>
-        <p>Loading...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="landing-page">
@@ -70,8 +45,7 @@ export default function Landing() {
           <div className="mission-text-card">
             <h2>Our Mission</h2>
             <p className="card-text">
-              {aboutData?.mission?.description || 
-              "Give and Get connects people in need with shelters and charities, while efficiently matching donors with organizations that need their contributions. We use smart matching algorithms to ensure resources reach those who need them most."}
+              Give and Get connects people in need with shelters and charities, while efficiently matching donors with organizations that need their contributions. We use smart matching algorithms to ensure resources reach those who need them most.
             </p>
           </div>
           <div className="mission-image-card">
@@ -89,31 +63,22 @@ export default function Landing() {
           <div className="values-text-card">
             <h2>Our Core Values</h2>
             <div className="values-list">
-              {aboutData?.values?.map((value, index) => (
-                <div key={index} className="value-item">
-                  <h3>{value.title}</h3>
-                  <p>{value.description}</p>
-                </div>
-              )) || (
-                <>
-                  <div className="value-item">
-                    <h3>Transparency</h3>
-                    <p>Every match comes with a detailed explanation of why it was made.</p>
-                  </div>
-                  <div className="value-item">
-                    <h3>Efficiency</h3>
-                    <p>Smart algorithms ensure resources go where they're needed most.</p>
-                  </div>
-                  <div className="value-item">
-                    <h3>Accessibility</h3>
-                    <p>Easy-to-use platform that works for everyone.</p>
-                  </div>
-                  <div className="value-item">
-                    <h3>Verification</h3>
-                    <p>All organizations are verified to ensure legitimacy.</p>
-                  </div>
-                </>
-              )}
+              <div className="value-item">
+                <h3>Transparency</h3>
+                <p>Every match comes with a detailed explanation of why it was made.</p>
+              </div>
+              <div className="value-item">
+                <h3>Efficiency</h3>
+                <p>Smart algorithms ensure resources go where they're needed most.</p>
+              </div>
+              <div className="value-item">
+                <h3>Accessibility</h3>
+                <p>Easy-to-use platform that works for everyone.</p>
+              </div>
+              <div className="value-item">
+                <h3>Verification</h3>
+                <p>All organizations are verified to ensure legitimacy.</p>
+              </div>
             </div>
           </div>
         </div>

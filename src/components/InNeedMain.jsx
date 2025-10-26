@@ -5,7 +5,12 @@ import '../App.css';
 import GoogleMapDisplay from './GoogleMapDisplay';
 
 async function getPeopleMatches(requestData) {
-  const API_URL = `${process.env.REACT_APP_API_URL}/api/match-people`;
+  const API_URL = process.env.REACT_APP_API_URL 
+    ? `${process.env.REACT_APP_API_URL}/api/match-people`
+    : 'http://localhost:8000/api/match-people'; // Fallback to localhost
+
+  console.log("Sending request to:", API_URL);
+  console.log("Request payload:", JSON.stringify(requestData, null, 2));
 
   try {
     const response = await fetch(API_URL, {
@@ -13,9 +18,11 @@ async function getPeopleMatches(requestData) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestData)
     });
+    
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.detail || "Something went wrong");
+      console.error("API Error Response:", errorData);
+      throw new Error(JSON.stringify(errorData.detail || errorData, null, 2));
     }
     return await response.json();
   } catch (error) {
@@ -39,8 +46,8 @@ export default function InNeedMain() {
     beds_needed: 1,
     needs_handicapped_access: false,
     owns_pets: false,
-    days_homeless: '',
     preferred_duration_days: 30,
+    days_homeless: null,
     prefers_family_rooming: false,
     can_pay_fees: false,
     max_affordable_fee: 0,
@@ -55,10 +62,11 @@ export default function InNeedMain() {
     gender: 'other',
     age: 25,
     language: 'english',
-    immigration_status: '',
+    immigration_status: null,
     veteran_status: 'no',
     criminal_record: 'no',
     sobriety: 'no',
+    has_id: true,
     needs_food: false,
     needs_clothing: false,
     needs_medical: false,
@@ -93,33 +101,51 @@ export default function InNeedMain() {
     }
   }, []);
 
-  useEffect(() => {
-    if (!userLocation) return;
-
     const fetchMatches = async () => {
-      const personFiltersPayload = {
-        ...formData,
-        location: userLocation,
-        max_travel_distance_miles: radius
-      };
+    if (!userLocation) {
+      console.log("No user location available yet");
+      return;
+    }
 
-      // Remove empty optional fields
-      if (!personFiltersPayload.days_homeless) delete personFiltersPayload.days_homeless;
-      if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
-
-      try {
-        const results = await getPeopleMatches({
-          person_filters: personFiltersPayload
-        });
-        setLocations(results);
-      } catch (err) {
-        console.error("Error fetching matches:", err);
-        setLocations(null);
-      }
+    // Create a copy of formData for person_filters
+    const personFiltersPayload = {
+      ...formData,
+      max_travel_distance_miles: radius
     };
 
-    fetchMatches();
-  }, [userLocation, radius, formData]);
+    // Remove empty optional fields
+    if (!personFiltersPayload.days_homeless) delete personFiltersPayload.days_homeless;
+    if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
+
+    const requestPayload = {
+        location: userLocation,
+      radius: radius,
+      person_filters: personFiltersPayload
+    };
+
+    console.log("=".repeat(80));
+    console.log("🚀 FRONTEND REQUEST PAYLOAD - SENDING TO API");
+    console.log("=".repeat(80));
+    console.log("Full Request Object:");
+    console.log(JSON.stringify(requestPayload, null, 2));
+    console.log("\n--- BREAKDOWN ---");
+    console.log("1. LOCATION:", userLocation);
+    console.log("2. RADIUS:", radius);
+    console.log("3. PERSON_FILTERS:");
+    console.log(JSON.stringify(personFiltersPayload, null, 2));
+    console.log("=".repeat(80));
+
+    try {
+      const results = await getPeopleMatches(requestPayload);
+      console.log("✅ SUCCESS - Matches received!");
+      console.log("Number of organizations matched:", Object.keys(results || {}).length);
+      console.log("Results:", results);
+      setLocations(results);
+      } catch (err) {
+      console.error("❌ ERROR fetching matches:", err);
+      setLocations(null);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -130,13 +156,13 @@ export default function InNeedMain() {
   };
 
   const selectedLocation =
-    selectedLocationId && locations
-      ? locations[selectedLocationId]
-      : null;
+  selectedLocationId && locations
+    ? locations[selectedLocationId]
+    : null;
 
   return (
     <div className="main-container">
-      <aside className="sidebar">
+<aside className="sidebar">
         <div className="sidebar-top" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h4 className="mb-3">What are you looking for?</h4>
           
@@ -392,7 +418,7 @@ export default function InNeedMain() {
                 min="18"
                 max="100"
               />
-            </div>
+          </div>
 
             <div className="form-check mb-2">
               <input
@@ -403,7 +429,7 @@ export default function InNeedMain() {
                 onChange={handleInputChange}
               />
               <label className="form-check-label">LGBTQ+ Identity</label>
-            </div>
+        </div> 
 
             <div className="form-section mb-3">
               <label className="form-label">Language</label>
@@ -452,12 +478,13 @@ export default function InNeedMain() {
                 <option value="yes">Yes</option>
               </select>
             </div>
-          </div>
+        </div>
 
           <div style={{ padding: '0 1rem', paddingBottom: '1rem' }}>
             <button
               className="btn btn-primary add-item-button"
               style={{ width: '100%', padding: '1rem' }}
+              onClick={fetchMatches}
             >
               Filter
             </button>
@@ -470,11 +497,11 @@ export default function InNeedMain() {
           <div className="map-wrapper">
             <div className="map-container">
               <GoogleMapDisplay
-                routeToId={routeToId}
-                locations={locations}
-                userLocation={userLocation}
-                selectedLocationId={selectedLocationId}
-                onMarkerClick={handleSelectLocation}
+              routeToId={routeToId}
+              locations={locations}
+              userLocation={userLocation}
+              selectedLocationId={selectedLocationId}
+              onMarkerClick={handleSelectLocation}
                 onInfoClose={handleClearRoute}
               />
             </div>
