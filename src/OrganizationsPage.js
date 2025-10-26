@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import './OrganizationsPage.css';
 
-// ✅ Base org template that matches your desired JSON
-const baseOrgTemplate = {
+/* ------------------------------------------------------------------
+ 🧱 Base JSON Template (matches backend expectation exactly)
+-------------------------------------------------------------------*/
+const BASE_ORG_TEMPLATE = {
   image_address_url: "",
   type: { shelter: false, charity: false },
   EIN: "",
@@ -42,149 +44,229 @@ const baseOrgTemplate = {
     sunday: "0000-2359"
   },
   description: "",
-  contact: {
-    phone: "",
-    email: "",
-    website: ""
-  }
+  contact: { phone: "", email: "", website: "" }
 };
 
+/* ------------------------------------------------------------------
+ 🧩 React Component
+-------------------------------------------------------------------*/
 function OrganizationsPage() {
-  const [organization, setOrganization] = useState(baseOrgTemplate);
-  const [organizations, setOrganizations] = useState([]);
+  const [org, setOrg] = useState(BASE_ORG_TEMPLATE);
+  const [submitted, setSubmitted] = useState([]);
 
-  // ✅ Handles nested field updates dynamically
+  /* ---------------------------------------------------------------
+   🔄 Handle Input Changes (supports nested JSON fields)
+  ----------------------------------------------------------------*/
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    const val = type === 'checkbox' ? checked : value;
+    const val = type === "checkbox" ? checked : value;
 
-    if (name in organization.ammenities) {
-      setOrganization({
-        ...organization,
-        ammenities: { ...organization.ammenities, [name]: val }
-      });
-    } else if (name in organization.contact) {
-      setOrganization({
-        ...organization,
-        contact: { ...organization.contact, [name]: val }
-      });
-    } else if (name in organization.hours) {
-      setOrganization({
-        ...organization,
-        hours: { ...organization.hours, [name]: val || "0000-2359" }
-      });
+    // Handle nested updates cleanly
+    if (name in org.contact) {
+      setOrg({ ...org, contact: { ...org.contact, [name]: val } });
+    } else if (name in org.hours) {
+      setOrg({ ...org, hours: { ...org.hours, [name]: val || "0000-2359" } });
+    } else if (name in org.ammenities) {
+      setOrg({ ...org, ammenities: { ...org.ammenities, [name]: val } });
     } else {
-      setOrganization({ ...organization, [name]: val });
+      setOrg({ ...org, [name]: val });
     }
   };
 
-  // ✅ Submit sends JSON directly to validator
+  /* ---------------------------------------------------------------
+   🚀 Submit: POST JSON directly to /api/org/validate
+  ----------------------------------------------------------------*/
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!organization.type.shelter && !organization.type.charity) {
-      alert('Please select at least one organization type (Shelter or Charity)');
+    if (!org.type.shelter && !org.type.charity) {
+      alert("Please select at least one organization type.");
       return;
     }
 
-    // Normalize languages to array
-    if (typeof organization.ammenities.languages === 'string') {
-      organization.ammenities.languages = organization.ammenities.languages
-        .split(',')
-        .map(lang => lang.trim());
+    // If languages typed as string, normalize to array
+    if (typeof org.ammenities.languages === "string") {
+      org.ammenities.languages = org.ammenities.languages
+        .split(",")
+        .map((lang) => lang.trim());
     }
 
+    // Omit ammenities if not a shelter
+    const payload = { ...org };
+    if (!org.type.shelter) delete payload.ammenities;
+
     try {
-      const response = await fetch('http://localhost:8000/api/org/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(organization)
+      const res = await fetch("http://localhost:8000/api/org/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
 
-      const result = await response.json();
+      const result = await res.json();
       if (result.success) {
-        alert(`✅ Organization validated & created with ID: ${result.organization_id}`);
-        setOrganizations([...organizations, organization]);
+        alert(`✅ Validation complete! Created ID: ${result.organization_id}`);
+        setSubmitted([...submitted, payload]);
+        setOrg(BASE_ORG_TEMPLATE);
       } else {
-        alert(`❌ Validation failed: ${result.message}`);
+        alert(`❌ Validation failed: ${result.message || "Unknown error"}`);
       }
     } catch (err) {
       console.error(err);
-      alert('⚠️ Could not connect to validation API.');
+      alert("⚠️ Could not reach backend validation API.");
     }
-
-    setOrganization(baseOrgTemplate);
   };
 
+  /* ---------------------------------------------------------------
+   🧾 UI
+  ----------------------------------------------------------------*/
   return (
     <div className="organizations-page">
       <h1>Organization Registration</h1>
+      <p className="subtitle">Fill out all required fields to register your organization</p>
+
       <form onSubmit={handleSubmit} className="org-form">
+
+        {/* ---------- TYPE ---------- */}
         <fieldset>
           <legend>Organization Type *</legend>
           <label>
             <input
               type="checkbox"
-              checked={organization.type.shelter}
+              checked={org.type.shelter}
               onChange={(e) =>
-                setOrganization({
-                  ...organization,
-                  type: { ...organization.type, shelter: e.target.checked }
-                })
+                setOrg({ ...org, type: { ...org.type, shelter: e.target.checked } })
               }
-            />
-            Shelter
+            /> Shelter
           </label>
           <label>
             <input
               type="checkbox"
-              checked={organization.type.charity}
+              checked={org.type.charity}
               onChange={(e) =>
-                setOrganization({
-                  ...organization,
-                  type: { ...organization.type, charity: e.target.checked }
-                })
+                setOrg({ ...org, type: { ...org.type, charity: e.target.checked } })
               }
-            />
-            Charity
+            /> Charity
           </label>
         </fieldset>
 
+        {/* ---------- BASIC INFO ---------- */}
         <fieldset>
-          <legend>Basic Info</legend>
-          <input name="EIN" placeholder="EIN" value={organization.EIN} onChange={handleChange} />
-          <input name="name" placeholder="Name" value={organization.name} onChange={handleChange} />
-          <input name="address" placeholder="Address" value={organization.address} onChange={handleChange} />
+          <legend>Basic Information</legend>
+          <input
+            name="EIN"
+            placeholder="EIN"
+            value={org.EIN}
+            onChange={handleChange}
+          />
+          <input
+            name="name"
+            placeholder="Organization Name"
+            value={org.name}
+            onChange={handleChange}
+          />
+          <input
+            name="address"
+            placeholder="Full Address"
+            value={org.address}
+            onChange={handleChange}
+          />
           <input
             name="image_address_url"
             placeholder="Image URL"
-            value={organization.image_address_url}
+            value={org.image_address_url}
             onChange={handleChange}
           />
           <textarea
             name="description"
             placeholder="Description"
-            value={organization.description}
+            value={org.description}
             onChange={handleChange}
           />
         </fieldset>
 
+        {/* ---------- CONTACT ---------- */}
         <fieldset>
-          <legend>Contact</legend>
-          <input name="phone" placeholder="Phone" value={organization.contact.phone} onChange={handleChange} />
-          <input name="email" placeholder="Email" value={organization.contact.email} onChange={handleChange} />
-          <input name="website" placeholder="Website" value={organization.contact.website} onChange={handleChange} />
+          <legend>Contact Information</legend>
+          <input
+            name="phone"
+            placeholder="Phone Number"
+            value={org.contact.phone}
+            onChange={handleChange}
+          />
+          <input
+            name="email"
+            placeholder="Email"
+            value={org.contact.email}
+            onChange={handleChange}
+          />
+          <input
+            name="website"
+            placeholder="Website"
+            value={org.contact.website}
+            onChange={handleChange}
+          />
         </fieldset>
 
-        <button type="submit" className="submit-btn">Validate & Create</button>
+        {/* ---------- HOURS ---------- */}
+        <fieldset>
+          <legend>Hours of Operation (0000-2359)</legend>
+          {Object.keys(org.hours).map((day) => (
+            <input
+              key={day}
+              name={day}
+              placeholder={day.charAt(0).toUpperCase() + day.slice(1)}
+              value={org.hours[day]}
+              onChange={handleChange}
+            />
+          ))}
+        </fieldset>
+
+        {/* ---------- AMMENITIES (only if shelter) ---------- */}
+        {org.type.shelter && (
+          <fieldset>
+            <legend>Amenities (Shelter Only)</legend>
+            <div className="checkbox-grid">
+              {Object.keys(org.ammenities).map((key) => (
+                <label key={key}>
+                  {typeof org.ammenities[key] === "boolean" ? (
+                    <>
+                      <input
+                        type="checkbox"
+                        name={key}
+                        checked={org.ammenities[key]}
+                        onChange={handleChange}
+                      />{" "}
+                      {key.replaceAll("_", " ")}
+                    </>
+                  ) : (
+                    <input
+                      type="text"
+                      name={key}
+                      value={org.ammenities[key]}
+                      onChange={handleChange}
+                      placeholder={key}
+                    />
+                  )}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+
+        <button type="submit" className="submit-btn">
+          Validate & Submit
+        </button>
       </form>
 
+      {/* ---------- SUBMITTED ORGANIZATIONS ---------- */}
       <div className="organizations-list">
-        <h2>Submitted Organizations ({organizations.length})</h2>
-        {organizations.map((org, i) => (
+        <h2>Submitted Organizations ({submitted.length})</h2>
+        {submitted.map((o, i) => (
           <div key={i} className="org-card">
-            <h3>{org.name}</h3>
-            <p>{org.address}</p>
+            <h3>{o.name}</h3>
+            <p><strong>Type:</strong> {o.type.shelter ? "Shelter" : "Charity"}</p>
+            <p><strong>Address:</strong> {o.address}</p>
+            <p><strong>Contact:</strong> {o.contact.email}</p>
           </div>
         ))}
       </div>
