@@ -50,7 +50,7 @@ export default function Landing() {
           <div className="hero-buttons">
             <button 
               className="btn-hero btn-primary-action"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/get-help')}
             >
               Get Help
             </button>

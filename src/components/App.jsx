@@ -19,6 +19,7 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/app" element={<RequireAuth><DonorMain /></RequireAuth>} />
+      <Route path="/get-help" element={<InNeedMain />} />
       <Route path="/register-organization" element={<OrganizationsPage />} />
       <Route path="/register-donor" element={<DonorPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
