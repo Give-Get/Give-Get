@@ -208,7 +208,7 @@ export default function Main() {
       <main className="main-content">
         <div className="content-column">
           <div className="media-wrap">
-            <div className="media-map">
+            
               <GoogleMapDisplay
               routeToId={routeToId}
               locations={locations}
@@ -216,120 +216,30 @@ export default function Main() {
               selectedLocationId={selectedLocationId}
               onMarkerClick={handleSelectLocation}
               onInfoClose={handleClearRoute}/>
-            </div>
+            
           </div>
         </div>
       </main>
 
-      <div className="horizontal-bar">
+      <div className="horizontal-bar card">
         <div className="card-body">
-          {selectedLocation ? (
-            <div className="selected-location d-flex align-items-stretch gap-3 pt-3">
-              <img
-                src={'/assets/imgs/img1.png'}
-                alt={selectedLocation.name}
-                className="selected-location-img"
-              />
-              <div className="selected-location-details flex-grow-1">
-                <div className="d-flex align-items-start justify-content-between mb-2">
-                  <div>
-                    <h4 className="mb-1">{selectedLocation.name}</h4>
-                    <div className="text-muted small">
-                      {selectedLocation.address}
-                        {" • "}
-                      {selectedLocation?.type?.shelter ? 'Shelter' : selectedLocation?.type?.charity ? 'Charity' : 'Organization'}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleClearRoute}
-                    className="back-arrow-btn"
-                    aria-label="Back to matches"
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: '4px 8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                      color: '#adb5bd',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                    }}
-                  >
-                    <span>Back</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                </div>
-
-                {selectedLocation.description && (
-                  <p className="mb-2">{selectedLocation.description}</p>
-                )}
-
-                {Array.isArray(selectedLocation.needs) && selectedLocation.needs.length > 0 && (
-                  <div className="mb-2">
-                    <strong className="me-2">Top needs:</strong>
-                    <span className="selected-location-needs">
-                      {selectedLocation.needs.slice(0, 3).map((need, idx) => (
-                        <span key={idx} className="need-chip">
-                          {need.item}{need.needed ? ` (${Math.max(need.needed - (need.have || 0), 0)} needed)` : ''}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                )}
-
-                {selectedLocation.contact && (
-                  <div className="selected-location-contact d-flex flex-wrap gap-3 mt-2">
-                    {selectedLocation.contact.phone && (
-                      <span className="contact-item text-nowrap">
-                        <span className="contact-icon">●</span> {selectedLocation.contact.phone}
-                      </span>
-                    )}
-                    {selectedLocation.contact.email && (
-                      <span className="contact-item text-nowrap">
-                        <span className="contact-icon">✉</span> {selectedLocation.contact.email}
-                      </span>
-                    )}
-                    {selectedLocation.contact.website && (
-                      <a
-                        className="contact-item text-nowrap"
-                        href={selectedLocation.contact.website}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                      >
-                        <span className="contact-icon">◉</span> Website
-                      </a>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <>
-              <h4 className="mt-2">Top Matches within 1 mi</h4>
-              <div className="location-list pt-2">
-                {locations && Object.keys(locations).map(locationId => {
-                  const location = locations[locationId];
-                  
-                  return (
-                    <Location 
-                      key={locationId}
-                      name={location.name}
-                      score={"??%"} 
-                      image={'/assets/imgs/img1.png'}
-                      ID = {locationId}
-                      onSelect={handleSelectLocation}
-                    />
-                  );
-                })}
-              </div>
-            </>
-          )}
+          <h4 className="mb-2">Top Matches within 1 mi</h4>
+          <div className="location-list pt-2">
+            {locations && Object.keys(locations).map(locationId => {
+              const location = locations[locationId];
+              
+              return (
+                <Location 
+                  key={locationId}
+                  name={location.name}
+                  score={"??%"} 
+                  image={'/assets/imgs/img1.png'}
+                  ID = {locationId}
+                  onSelect={handleSelectLocation}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
