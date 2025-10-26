@@ -86,7 +86,6 @@ def sort_shelters_by_score(location: dict, radius: int, person_filters: dict = N
         org_with_score["score"] = int(round(score))  # Always round to integer
         ranked_orgs[i] = org_with_score
     
-    print(f"Ranked organizations: {ranked_orgs}")
     return ranked_orgs
 
 

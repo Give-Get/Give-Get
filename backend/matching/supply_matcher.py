@@ -149,23 +149,14 @@ def _organization_needs_items(donor_items: dict, organization: dict) -> bool:
             have = item_data.get("have", 0)
             gap = needed - have
             
-            print(f"            Checking item: {item_name}")
-            print(f"               Org category: '{org_category}' vs Donor category: '{donor_category}'")
-            print(f"               Match? {org_category == donor_category}")
-            
             if org_category == donor_category:
-                print(f"            📦 CATEGORY MATCH! Item: {item_name}")
-                print(f"            📊 GAP CALCULATION:")
-                print(f"               needed (type={type(needed).__name__}): {needed}")
-                print(f"               have (type={type(have).__name__}): {have}")
-                print(f"               gap = needed - have = {needed} - {have} = {gap}")
-                print(f"               Checking: {needed} > {have} = {needed > have}")
-                
+                print(f"            📦 Match found! Item: {item_name}, Org category: '{org_category}'")
+                print(f"            Needed: {needed}, Have: {have}, Gap: {gap}")
                 if needed > have:
-                    print(f"            ✅ GAP CHECK PASSED! Org NEEDS this category (gap={gap} > 0)")
+                    print(f"            ✅ Org NEEDS this category (gap > 0)")
                     return True  # Org needs items in this category
                 else:
-                    print(f"            ❌ GAP CHECK FAILED! Org has enough (gap={gap} <= 0)")
+                    print(f"            ⚠️  Org has enough of this category (gap <= 0)")
     
     print(f"         ❌ No matching categories with gaps")
     return False
