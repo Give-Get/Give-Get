@@ -91,6 +91,11 @@ export default function Main() {
     if (!userLocation) return;
 
     const fetchMatches = async () => {
+      console.log("\n" + "=".repeat(80));
+      console.log("🚀 DONORMAIN - fetchMatches called");
+      console.log("=".repeat(80));
+      console.log("📦 Current donations:", donations);
+      
       setLoading(true);
       setError(null);
      
@@ -110,18 +115,30 @@ export default function Main() {
         donor_items: donorItemsPayload
       };
 
+      console.log("📤 Sending to API:");
+      console.log(JSON.stringify(requestData, null, 2));
+
       try {
         const data = await getSupplyMatches(requestData);
+        console.log("\n📥 Received from API:");
+        console.log("✅ Success:", data.success);
+        console.log("📊 Matches found:", data.matches_found);
+        console.log("🏢 Organizations returned:", Object.keys(data.ranked_organizations || {}).length);
+        console.log("Organization names:", Object.values(data.ranked_organizations || {}).map(org => org.name));
         // Store the ranked_organizations object in your 'locations' state
-        setLocations(data.ranked_organizations); 
+        setLocations(data.ranked_organizations);
+        console.log("✅ Updated locations state with", Object.keys(data.ranked_organizations || {}).length, "organizations");
       } catch (err) {
-        console.error("❌ API CALL FAILED");
+        console.error("\n❌ API CALL FAILED");
         console.error("Error message:", err.message);
         console.error("Request data that failed:", requestData);
         setError(err.message || "An unknown error occurred.");
         setLocations(null);
-      } 
-      setLoading(false);
+        console.log("⚠️  Cleared locations state (set to null)");
+      } finally {
+        setLoading(false);
+      }
+      console.log("=".repeat(80) + "\n");
     };
 
     fetchMatches();
@@ -131,6 +148,8 @@ export default function Main() {
 
 
   async function addDonation(donation) {
+    console.log("\n➕ ADDING DONATION:");
+    console.log("   Raw donation:", donation);
     // normalize/ensure fields and create an id
     const newDonation = {
       id: Date.now(),
@@ -140,8 +159,14 @@ export default function Main() {
       category: donation.category || '',
       description: donation.description || ''
     };
+    console.log("   Normalized donation:", newDonation);
 
-    setDonations(prev => [...prev, newDonation]);
+    setDonations(prev => {
+      const updated = [...prev, newDonation];
+      console.log("   New donations array:", updated);
+      console.log("   ⚠️  This will trigger useEffect and call fetchMatches!");
+      return updated;
+    });
     // hide the form and return to the list view
     setShowAddForm(false);
   }

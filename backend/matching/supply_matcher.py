@@ -41,25 +41,49 @@ def sort_organizations_by_need(location: dict, radius: int, donor_items: dict = 
         dict: {rank: organization_with_score}
         Example: {1: {"name": "Food Bank", "score": 95, ...}, ...}
     """
+    print("\n" + "="*80)
+    print("🔍 SUPPLY_MATCHER - sort_organizations_by_need CALLED")
+    print("="*80)
+    print(f"📍 Location: {location}")
+    print(f"📏 Radius: {radius}")
+    print(f"📦 Donor items: {donor_items}")
+    print("="*80)
+    
     if donor_items:
+        print("\n📋 STEP 1: Retrieving organizations from database...")
         # Step 1: Retrieve all organizations (both shelters and charities can receive donations)
         org_type = {"shelter": True, "charity": True}
         organizations_list = get_orgs_within_radius(location, radius, org_type)
+        print(f"✅ Retrieved {len(organizations_list)} organizations within {radius} miles")
+        for i, (dist, org) in enumerate(organizations_list, 1):
+            print(f"   {i}. {org.get('name', 'Unknown')} - {dist:.1f} miles")
         
+        print("\n📋 STEP 2: Filtering organizations that need donor's items...")
         # Step 2: Filter to organizations that need the donor's items
         matching_orgs = []  # Will store: [(distance, org_data), ...]
         for distance, org_data in organizations_list:
-            if _organization_needs_items(donor_items, org_data):
+            needs_items = _organization_needs_items(donor_items, org_data)
+            org_name = org_data.get('name', 'Unknown')
+            if needs_items:
+                print(f"   ✅ {org_name} - NEEDS items (keeping)")
                 matching_orgs.append((distance, org_data))
+            else:
+                print(f"   ❌ {org_name} - DOESN'T NEED items (filtering out)")
+        print(f"✅ {len(matching_orgs)} organizations need donor's items")
         
+        print("\n📋 STEP 3: Computing scores for matching organizations...")
         # Step 3: Compute need scores for each matching organization
         scored_list = []  # Will be list of (distance, org_data, score) tuples
         for distance, org_data in matching_orgs:
             score = _compute_need_score(donor_items, org_data, distance)
+            org_name = org_data.get('name', 'Unknown')
+            print(f"   📊 {org_name} - Score: {score:.2f}")
             scored_list.append((distance, org_data, score))
         
+        print("\n📋 STEP 4: Sorting by score (highest first)...")
         # Step 4: Sort by need score (highest need first)
         sorted_list = sorted(scored_list, key=lambda x: x[2], reverse=True)
+        print(f"✅ Sorted {len(sorted_list)} organizations")
         
     else:
         # No donor items - retrieve all organizations and sort by distance
@@ -68,6 +92,7 @@ def sort_organizations_by_need(location: dict, radius: int, donor_items: dict = 
         organizations_list = get_orgs_within_radius(location, radius, org_type)
         sorted_list = [(dist, org, 100) for dist, org in organizations_list]
     
+    print("\n📋 FINAL: Converting to ranked dictionary...")
     # Convert sorted list to dictionary with integer keys based on rank
     # Add score to each organization object
     ranked_orgs = {}
@@ -76,7 +101,10 @@ def sort_organizations_by_need(location: dict, radius: int, donor_items: dict = 
         org_with_score = org_data.copy()
         org_with_score["score"] = int(round(score))  # Always round to integer
         ranked_orgs[i] = org_with_score
+        print(f"   Rank {i}: {org_with_score.get('name', 'Unknown')} - Score: {org_with_score['score']}")
     
+    print(f"\n✅ RETURNING {len(ranked_orgs)} ranked organizations")
+    print("="*80 + "\n")
     return ranked_orgs
 
 
@@ -97,25 +125,40 @@ def _organization_needs_items(donor_items: dict, organization: dict) -> bool:
     Returns:
         bool: True if organization needs any of the donor's items
     """
+    org_name = organization.get("name", "Unknown")
     donor_item_list = donor_items.get("items", [])
     org_needs = organization.get("needs", {})
     
+    print(f"\n      🔍 Checking {org_name}...")
+    print(f"         Donor categories: {[item.get('category', '').lower() for item in donor_item_list]}")
+    print(f"         Org has {len(org_needs)} need items")
+    
     if not donor_item_list or not org_needs:
+        print(f"         ❌ No donor items or org has no needs")
         return False
     
     # Check if any donor item matches a category the org needs
     for donor_item in donor_item_list:
         donor_category = donor_item.get("category", "").lower()
+        print(f"         Checking donor category: '{donor_category}'")
         
         # Check if org has any needs in this category with a gap (needed > have)
         for item_name, item_data in org_needs.items():
             org_category = item_data.get("category", "").lower()
             needed = item_data.get("needed", 0)
             have = item_data.get("have", 0)
+            gap = needed - have
             
-            if org_category == donor_category and needed > have:
-                return True  # Org needs items in this category
+            if org_category == donor_category:
+                print(f"            📦 Match found! Item: {item_name}, Org category: '{org_category}'")
+                print(f"            Needed: {needed}, Have: {have}, Gap: {gap}")
+                if needed > have:
+                    print(f"            ✅ Org NEEDS this category (gap > 0)")
+                    return True  # Org needs items in this category
+                else:
+                    print(f"            ⚠️  Org has enough of this category (gap <= 0)")
     
+    print(f"         ❌ No matching categories with gaps")
     return False
 
 
