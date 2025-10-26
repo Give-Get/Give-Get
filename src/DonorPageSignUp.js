@@ -25,18 +25,22 @@ const DonorPage = () => {
 
   const handleDonorChange = (e) => {
     const { name, value } = e.target;
+    console.log(`📝 Input changed → ${name}:`, value);
+
     setDonorData({
       ...donorData,
       [name]: value
     });
 
     if (errors[name]) {
+      console.log(`🧹 Clearing error for ${name}`);
       setErrors({ ...errors, [name]: '' });
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
+    console.log('🔍 Running validation...');
 
     if (!donorData.name.trim()) newErrors.name = 'Name is required';
     if (!donorData.email.trim()) newErrors.email = 'Email is required';
@@ -50,21 +54,30 @@ const DonorPage = () => {
     else if (donorData.password !== donorData.confirmPassword)
       newErrors.confirmPassword = 'Passwords do not match';
 
+    if (Object.keys(newErrors).length > 0) {
+      console.warn('⚠️ Validation errors found:', newErrors);
+    } else {
+      console.log('✅ Validation passed.');
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🚀 Form submitted.');
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      console.warn('❌ Form validation failed. Aborting submission.');
+      return;
+    }
 
-    // Remove confirmPassword from the payload
+    console.log('🧱 Building payload for backend...');
     const { confirmPassword, address, ...formData } = donorData;
 
-    // ✅ Construct payload for FastAPI create_user
     const userPayload = {
-      _id: "0", // temporary until backend assigns ID
+      _id: "0",
       name: formData.name || "",
       charity: false,
       shelter: false,
@@ -74,29 +87,37 @@ const DonorPage = () => {
       password: formData.password
     };
 
+    console.log('📦 Payload ready to send:', userPayload);
+
     try {
+      console.log('🌐 Sending POST → http://localhost:8000/api/users/create');
       const response = await fetch("http://localhost:8000/api/users/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userPayload)
       });
 
+      console.log('📬 Received response:', response.status, response.statusText);
+
       if (!response.ok) {
         const errText = await response.text();
+        console.error('❌ Server error:', errText);
         throw new Error(`Server error: ${errText}`);
       }
 
       const result = await response.json();
-      console.log("✅ User created:", result);
+      console.log('✅ Backend success:', result);
 
       setIsRegistered(true);
+      console.log('🎉 Registration complete. UI updated.');
     } catch (error) {
-      console.error("❌ Error creating user:", error);
-      alert("⚠️ Could not connect to backend. Please try again later.");
+      console.error('🚨 Error while sending to backend:', error);
+      alert('⚠️ Could not connect to backend. Please try again later.');
     }
   };
 
   if (isRegistered) {
+    console.log('🟢 Displaying success screen for new donor.');
     return (
       <div className="donor-page">
         <div className="success-container">
@@ -115,6 +136,8 @@ const DonorPage = () => {
       </div>
     );
   }
+
+  console.log('📋 Rendering registration form.');
 
   return (
     <div className="donor-page">
