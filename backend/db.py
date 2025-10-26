@@ -4,6 +4,9 @@ handles all database interaction
 
 from pymongo import MongoClient
 from math import radians, sin, cos, sqrt, atan2
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
+geolocator = Nominatim(user_agent="my-geocoder")
 
 
 MONGO_URI = "mongodb+srv://praj:praj@give-and-get-data.undmkkl.mongodb.net/?appName=Give-and-Get-Data"
@@ -70,14 +73,27 @@ def create_user(new_json, id=None):
     update_user(id, new_json)
     return
 
-def create_organization(new_json):
+def create_organization(new_json: dict):
     """
+    Create a new organization and linked user entry.
+    Geocodes the address — raises ValueError if address cannot be found.
     """
     id = generate_id()
 
-    update_organization(id, new_json)
+    address = new_json.get("address", "").strip()
 
-    pass
+    # Try to geocode the provided address
+    try:
+        location = geolocator.geocode(address, timeout=10)
+        if not location:
+            raise ValueError(f"Unable to geocode address: '{address}'. Please provide a valid address.")
+        new_json["location"] = {"lat": location.latitude, "lng": location.longitude}
+    except (GeocoderTimedOut, GeocoderUnavailable) as e:
+        raise ValueError(f"Geocoding service unavailable or timed out: {str(e)}")
+
+    new_json["_id"] = id
+    update_organization(id, new_json)
+    return id
 
 def generate_id():
     collection = db.app_statistics
