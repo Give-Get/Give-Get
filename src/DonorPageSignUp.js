@@ -90,8 +90,8 @@ const DonorPage = () => {
     console.log('📦 Payload ready to send:', userPayload);
 
     try {
-      console.log('🌐 Sending POST → http://localhost:8000/api/users/create');
-      const response = await fetch("http://localhost:8000/api/users/create", {
+      console.log('🌐 Sending POST → http://localhost:8000/api/user/create');
+      const response = await fetch("http://localhost:8000/api/user/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userPayload)
