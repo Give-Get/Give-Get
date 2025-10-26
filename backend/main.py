@@ -504,6 +504,58 @@ async def validate_organization(org: OrganizationValidationRequest):
         )
 
 
+class DonorValidationRequest(BaseModel):
+    """Payload from the front-end donor signup form for validation"""
+    name: str
+    email: str
+    phone_number: str
+    address: str
+
+
+@app.post("/api/donor/validate")
+async def validate_donor(donor: DonorValidationRequest):
+    """
+    Run lightweight verification checks for a donor without persisting them.
+    Used by the front-end donor signup form before full submission.
+    """
+    try:
+        verification_payload = {
+            'name': donor.name.strip(),
+            'email': donor.email.strip(),
+            'phone': donor.phone_number.strip(),
+            'address': donor.address.strip(),
+            'id_uploaded': False  # Donors don't upload ID during signup
+        }
+
+        verification_result = verifier.verify_individual(verification_payload)
+        status = verification_result['status']
+        success = status != 'rejected'
+
+        if status == 'approved':
+            message = "Donor passed automated verification."
+        elif status == 'manual_review':
+            message = "Donor requires manual review."
+        else:
+            message = "Donor failed automated verification."
+
+        return {
+            "success": success,
+            "message": message,
+            "verification": {
+                "status": status,
+                "trust_score": verification_result['score'],
+                "trust_level": verification_result['trust_level'],
+                "checks": verification_result['checks']
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": str(e), "context": "donor validation"}
+        )
+
+
 @app.get("/api/organizations")
 async def get_organizations():
     """Get all organizations"""
