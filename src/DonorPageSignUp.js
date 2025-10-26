@@ -19,19 +19,9 @@ const DonorPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validatePhone = (phone) => {
-    const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
-    return phoneRegex.test(phone);
-  };
-
-  const validatePassword = (password) => {
-    return password.length >= 8;
-  };
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePhone = (phone) => /^\d{3}-\d{3}-\d{4}$/.test(phone);
+  const validatePassword = (password) => password.length >= 8;
 
   const handleDonorChange = (e) => {
     const { name, value } = e.target;
@@ -41,71 +31,69 @@ const DonorPage = () => {
     });
 
     if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
-      });
+      setErrors({ ...errors, [name]: '' });
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (!donorData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-
-    if (!donorData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(donorData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    if (!donorData.phone_number.trim()) {
-      newErrors.phone_number = 'Phone number is required';
-    } else if (!validatePhone(donorData.phone_number)) {
-      newErrors.phone_number = 'Phone format should be XXX-XXX-XXXX';
-    }
-
-    if (!donorData.address.trim()) {
-      newErrors.address = 'Address is required';
-    }
-
-    if (!donorData.password) {
-      newErrors.password = 'Password is required';
-    } else if (!validatePassword(donorData.password)) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-
-    if (!donorData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (donorData.password !== donorData.confirmPassword) {
+    if (!donorData.name.trim()) newErrors.name = 'Name is required';
+    if (!donorData.email.trim()) newErrors.email = 'Email is required';
+    else if (!validateEmail(donorData.email)) newErrors.email = 'Invalid email format';
+    if (!donorData.phone_number.trim()) newErrors.phone_number = 'Phone number is required';
+    else if (!validatePhone(donorData.phone_number)) newErrors.phone_number = 'Phone format should be XXX-XXX-XXXX';
+    if (!donorData.address.trim()) newErrors.address = 'Address is required';
+    if (!donorData.password) newErrors.password = 'Password is required';
+    else if (!validatePassword(donorData.password)) newErrors.password = 'Password must be at least 8 characters';
+    if (!donorData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
+    else if (donorData.password !== donorData.confirmPassword)
       newErrors.confirmPassword = 'Passwords do not match';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
+    if (!validateForm()) return;
+
+    // Remove confirmPassword from the payload
+    const { confirmPassword, address, ...formData } = donorData;
+
+    // ✅ Construct payload for FastAPI create_user
+    const userPayload = {
+      _id: "0", // temporary until backend assigns ID
+      name: formData.name || "",
+      charity: false,
+      shelter: false,
+      donor: true,
+      phone_number: formData.phone_number,
+      email: formData.email,
+      password: formData.password
+    };
+
+    try {
+      const response = await fetch("http://localhost:8000/api/users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userPayload)
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Server error: ${errText}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ User created:", result);
+
+      setIsRegistered(true);
+    } catch (error) {
+      console.error("❌ Error creating user:", error);
+      alert("⚠️ Could not connect to backend. Please try again later.");
     }
-
-    const { confirmPassword, ...donorRegistration } = donorData;
-
-    console.log('Donor Registration:', donorRegistration);
-
-    // Here you would typically send this data to your backend
-    // fetch('/api/register-donor', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(donorRegistration)
-    // });
-
-    setIsRegistered(true);
   };
 
   if (isRegistered) {
