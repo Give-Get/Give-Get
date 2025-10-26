@@ -86,7 +86,7 @@ function AddItemForm({ onAdd }) {
                     />
                 </div>
 
-                <div className="col-12 d-flex gap-2 mt-2">
+                <div className="col-12 d-flex justify-content-center mt-2">
                     <button type="submit" className="btn btn-primary add-item-button">Submit</button>
                 </div>
             </div>

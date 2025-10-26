@@ -5,7 +5,8 @@ function Donation(props) {
     return (
         <div className="donation-card">
             <div className="card-body">
-                <p className="card-title mb-3">{props.quantity}x {props.itemName} ({props.size})</p>
+                <p className="card-title">{props.quantity}x {props.itemName}</p>
+                <label className="card-description mb-3">{props.description}</label>
             </div>
         </div>
     );

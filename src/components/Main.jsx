@@ -9,6 +9,7 @@ import GoogleMapDisplay from './GoogleMapDisplay';
 export default function Main() {
   const navigate = useNavigate();
   const [donations, setDonations] = useState([]);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   function handleLogout() {
     localStorage.removeItem('auth');
@@ -16,12 +17,19 @@ export default function Main() {
   }
 
   async function addDonation(donation) {
-    donation.itemName="Sample Item";
-    donation.quantity=1;
-    donation.size="Medium";
-    donation.category="Clothing";
-    donation.description="A sample description of the donated item.";
-    setDonations([...donations, donation]);
+    // normalize/ensure fields and create an id
+    const newDonation = {
+      id: Date.now(),
+      itemName: donation.itemName || 'Unnamed item',
+      quantity: Number(donation.quantity) || 1,
+      size: donation.size || '',
+      category: donation.category || '',
+      description: donation.description || ''
+    };
+
+    setDonations(prev => [...prev, newDonation]);
+    // hide the form and return to the list view
+    setShowAddForm(false);
   }
 
   return (
@@ -29,23 +37,32 @@ export default function Main() {
       <aside className="sidebar">
         <div className="sidebar-top">
           <h4 className="mb-3">What items are you donating?</h4>
-          <button
-          className="btn btn-primary add-item-button"
-          onClick={addDonation}>+ Add item</button>
+          {showAddForm ? (
+            <AddItemForm onAdd={addDonation} />
+          ) : (
+            <button
+              className="btn btn-primary add-item-button"
+              onClick={() => setShowAddForm(true)}
+            >
+              + Add item
+            </button>
+          )}
         </div>
-        <div className="donation-list mx-4">
-          <AddItemForm />
-          {donations.map(donation => (
-            <Donation 
-              key={donation.id}
-              itemName={donation.itemName}
-              quantity={donation.quantity}
-              size={donation.size}
-              category={donation.category}
-              description={donation.description}
-            />
-          ))}
-        </div>
+
+        {!showAddForm && (
+          <div className="donation-list mx-4">
+            {donations.map(donation => (
+              <Donation 
+                key={donation.id}
+                itemName={donation.itemName}
+                quantity={donation.quantity}
+                size={donation.size}
+                category={donation.category}
+                description={donation.description}
+              />
+            ))}
+          </div>
+        )}
 
         <div className="sidebar-bottom mt-auto">
           <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>Logout</button>
