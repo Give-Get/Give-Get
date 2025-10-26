@@ -75,16 +75,22 @@ def sort_shelters_by_score(location: dict, radius: int, person_filters: dict = N
         sorted_list = sorted(scored_list, key=lambda x: x[2], reverse=True)
         
     else:
-        # No person filters - retrieve all organization types, already sorted by distance
+        # No person filters - retrieve all organization types, sorted by distance
+        # All organizations get perfect score of 100 (no filtering applied)
         org_type = {"shelter": True, "charity": True}
         organizations_list = get_orgs_within_radius(location, radius, org_type)
-        sorted_list = [(dist, org, dist) for dist, org in organizations_list]
+        sorted_list = [(dist, org, 100) for dist, org in organizations_list]  # Score always 100
 
     # Convert sorted list to dictionary with integer keys based on rank
+    # Add score to each organization object
     ranked_orgs = {}
-    for i, (_, org_data, _) in enumerate(sorted_list, 1):
-        ranked_orgs[i] = org_data
-
+    for i, (distance, org_data, score) in enumerate(sorted_list, 1):
+        # Create a copy of org_data and add the score
+        org_with_score = org_data.copy()
+        org_with_score["score"] = int(round(score))  # Always round to integer
+        ranked_orgs[i] = org_with_score
+    
+    print(f"Ranked organizations: {ranked_orgs}")
     return ranked_orgs
 
 
