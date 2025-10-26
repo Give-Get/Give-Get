@@ -205,7 +205,7 @@ export default function Main() {
       <main className="main-content">
         <div className="content-column">
           <div className="media-wrap">
-            <div className="media-map">
+            
               <GoogleMapDisplay
               routeToId={routeToId}
               locations={locations}
@@ -213,8 +213,10 @@ export default function Main() {
               selectedLocationId={selectedLocationId}
               onMarkerClick={handleSelectLocation}
               onInfoClose={handleClearRoute}/>
-            </div>
+            
           </div>
+        </div>
+      </main>
 
           <div className="horizontal-bar card">
             <div className="card-body">
@@ -238,7 +240,5 @@ export default function Main() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
   );
 }
