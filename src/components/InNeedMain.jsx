@@ -370,7 +370,7 @@ export default function InNeedMain() {
                 <option value="female">Female</option>
                 <option value="other">Other/Prefer not to say</option>
               </select>
-            </div>
+          </div>
 
             <div className="form-section mb-3">
               <label className="form-label">Age</label>
@@ -383,7 +383,7 @@ export default function InNeedMain() {
                 min="18"
                 max="100"
               />
-            </div>
+        </div> 
 
             <div className="form-check mb-2">
               <input
@@ -456,7 +456,7 @@ export default function InNeedMain() {
                 <option value="yes">Yes</option>
               </select>
             </div>
-          </div>
+        </div>
 
           <div style={{ padding: '0 1rem', paddingBottom: '1rem' }}>
             <button
@@ -484,7 +484,7 @@ export default function InNeedMain() {
             cursor: 'pointer',
           }}
         />
-      <div className="content-column">
+        <div className="content-column">
           <div className="media-wrap">
             <div className="media-map">
               <GoogleMapDisplay
