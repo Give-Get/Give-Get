@@ -5,30 +5,13 @@ import '../App.css';
 import GoogleMapDisplay from './GoogleMapDisplay';
 
 async function getPeopleMatches(requestData) {
-  const API_URL = process.env.REACT_APP_API_URL 
-    ? `${process.env.REACT_APP_API_URL}/api/match-people`
-    : 'http://localhost:8000/api/match-people'; // Fallback to localhost
-
-  console.log("Sending request to:", API_URL);
-  console.log("Request payload:", JSON.stringify(requestData, null, 2));
-
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestData)
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("API Error Response:", errorData);
-      throw new Error(JSON.stringify(errorData.detail || errorData, null, 2));
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Failed to fetch matches:", error);
-    throw error;
-  }
+  const API_URL = `${process.env.REACT_APP_API_URL}/api/match-people`;
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestData)
+  });
+  return await response.json();
 }
 
 export default function InNeedMain() {
@@ -91,19 +74,13 @@ export default function InNeedMain() {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
-        },
-        (error) => {
-          console.error("Error getting user location:", error);
         }
       );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
     }
   }, []);
 
-    const fetchMatches = async () => {
+  const fetchMatches = async () => {
     if (!userLocation) {
-      console.log("No user location available yet");
       return;
     }
 
@@ -118,22 +95,10 @@ export default function InNeedMain() {
     if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
 
     const requestPayload = {
-        location: userLocation,
+      location: userLocation,
       radius: radius,
       person_filters: personFiltersPayload
     };
-
-    console.log("=".repeat(80));
-    console.log("🚀 FRONTEND REQUEST PAYLOAD - SENDING TO API");
-    console.log("=".repeat(80));
-    console.log("Full Request Object:");
-    console.log(JSON.stringify(requestPayload, null, 2));
-    console.log("\n--- BREAKDOWN ---");
-    console.log("1. LOCATION:", userLocation);
-    console.log("2. RADIUS:", radius);
-    console.log("3. PERSON_FILTERS:");
-    console.log(JSON.stringify(personFiltersPayload, null, 2));
-    console.log("=".repeat(80));
 
     try {
       const results = await getPeopleMatches(requestPayload);
