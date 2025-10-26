@@ -77,9 +77,8 @@ class PersonFilters(BaseModel):
     beds_needed: Optional[int] = Field(1, description="Number of beds needed", ge=1)
     needs_handicapped_access: Optional[bool] = Field(False, description="Requires wheelchair accessibility")
     owns_pets: Optional[bool] = Field(False, description="Has pets that need accommodation")
-    days_homeless: Optional[int] = Field(None, description="Number of days homeless (for urgency calculation)", ge=0)
     preferred_duration_days: Optional[int] = Field(30, description="Preferred stay duration in days", ge=1)
-    
+    days_homeless: Optional[int] = Field(None, description="Number of days homeless (for urgency calculation)", ge=0)
     # Housing preferences (for fit scoring, not hard constraints)
     prefers_family_rooming: Optional[bool] = Field(False, description="Prefers family room accommodation")
     can_pay_fees: Optional[bool] = Field(False, description="Able to pay shelter fees")
