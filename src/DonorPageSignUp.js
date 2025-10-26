@@ -97,8 +97,8 @@ const DonorPage = () => {
     const { confirmPassword, password, charity, shelter, donor, ...donorValidation } = donorData;
 
     try {
-      console.log('🌐 Sending POST → http://localhost:5000/api/user/create');
-      const response = await fetch("http://localhost:5000/api/user/create", {
+      console.log('🌐 Sending POST → https://give-get.onrender.com/api/user/create');
+      const response = await fetch("https://give-get.onrender.com/api/user/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userPayload)
