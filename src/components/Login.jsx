@@ -13,7 +13,7 @@ export default function Login() {
     // TODO: replace with real authentication call
     // On successful login:
     localStorage.setItem('auth', '1'); // simple flag for RequireAuth
-    navigate('/app', { replace: true }); // go to authenticated app
+    navigate('/give-help', { replace: true }); // go to authenticated app
   }
 
   return (
