@@ -38,9 +38,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f6f8fb 0%, #ffffff 100%);
   padding: 2rem;
   text-align: center;
+  position: relative;
 }
 
 .hero-content {
@@ -86,28 +86,14 @@
   font-family: var(--ff-base);
 }
 
-.btn-get-help {
+.btn-primary-action {
   background-color: #2ee079;
   color: #000000;
   box-shadow: 0 4px 15px rgba(46, 224, 121, 0.3);
 }
 
-.btn-get-help:hover {
+.btn-primary-action:hover {
   background-color: #27b65e;
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(46, 224, 121, 0.4);
-}
-
-.btn-give-help {
-  background-color: #ffffff;
-  color: #2ee079;
-  border: 3px solid #2ee079;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.btn-give-help:hover {
-  background-color: #2ee079;
-  color: #000000;
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(46, 224, 121, 0.4);
 }
@@ -165,29 +151,122 @@
   margin-bottom: 0;
 }
 
-/* Mission Card - specific styles */
-.mission-card .card-container {
-  max-width: 1000px;
+/* Mission Card - Two Column Layout */
+.mission-card {
+  padding: 4rem 3rem;
 }
 
-/* Values Card - Grid layout */
-.values-grid-landing {
+.mission-content {
+  max-width: 1400px;
+  width: 100%;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  margin-top: 2rem;
-  text-align: left;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.mission-text-card {
+  background: #ffffff;
+  padding: 3rem 2.5rem;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  height: 100%;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mission-text-card h2 {
+  font-family: "Cocogoose_Bold", var(--ff-base);
+  font-weight: 700;
+  font-size: 2.5rem;
+  color: var(--bs-dark);
+  margin-bottom: 1.5rem;
+  letter-spacing: calc(var(--tracking-base) * 0.6);
+}
+
+.mission-text-card .card-text {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: var(--bs-body-color);
+}
+
+.mission-image-card {
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  height: 100%;
+  min-height: 400px;
+}
+
+.mission-image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Values Card - Two Column Layout */
+.values-card {
+  padding: 4rem 3rem;
+}
+
+.values-content {
+  max-width: 1400px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.values-image-card {
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  height: 100%;
+  min-height: 400px;
+}
+
+.values-image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.values-text-card {
+  background: #ffffff;
+  padding: 3rem 2.5rem;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  height: 100%;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.values-text-card h2 {
+  font-family: "Cocogoose_Bold", var(--ff-base);
+  font-weight: 700;
+  font-size: 2.5rem;
+  color: var(--bs-dark);
+  margin-bottom: 2rem;
+  letter-spacing: calc(var(--tracking-base) * 0.6);
+}
+
+.values-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .value-item {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.value-icon-small {
-  font-size: 2rem;
-  flex-shrink: 0;
+  text-align: left;
 }
 
 .value-item h3 {
@@ -205,55 +284,90 @@
   margin: 0;
 }
 
-/* Contact Card */
-.contact-info-landing {
-  margin-top: 2rem;
+/* Contact Card - Project Style */
+.contact-card {
+  padding: 4rem 3rem;
 }
 
-.contact-item-landing {
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
-}
-
-.contact-item-landing strong {
-  font-weight: 700;
-  color: var(--bs-dark);
-}
-
-.contact-item-landing a {
-  color: #2ee079;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s ease;
-}
-
-.contact-item-landing a:hover {
-  color: #27b65e;
-  text-decoration: underline;
-}
-
-.social-links-landing {
+.contact-container {
+  max-width: 700px;
+  width: 100%;
+  background: #ffffff;
+  padding: 4rem 3rem;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  text-align: center;
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
   justify-content: center;
-  margin-top: 1rem;
 }
 
-.social-link {
-  color: #2ee079;
-  text-decoration: none;
-  font-weight: 600;
-  padding: 0.75rem 1.5rem;
-  border: 2px solid #2ee079;
-  border-radius: 25px;
-  transition: all 0.2s ease;
-  font-size: 0.95rem;
+.contact-title {
+  font-family: "Cocogoose_Bold", var(--ff-base);
+  font-weight: 700;
+  font-size: 2.5rem;
+  color: var(--bs-dark);
+  margin-bottom: 1.5rem;
+  letter-spacing: calc(var(--tracking-base) * 0.6);
 }
 
-.social-link:hover {
+.contact-description {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: var(--bs-body-color);
+  margin-bottom: 3rem;
+}
+
+.contact-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.contact-item-new {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 2rem;
+  background: #f8f9fa;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  transition: all 0.3s ease;
+}
+
+.contact-item-new:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(46, 224, 121, 0.15);
+  background: #f0fdf7;
+}
+
+.contact-icon {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.instagram-icon {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: white;
+}
+
+.email-icon {
   background: #2ee079;
   color: #000000;
-  transform: translateY(-2px);
+}
+
+.contact-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--bs-dark);
+  text-align: left;
 }
 
 /* CTA Card */
@@ -322,9 +436,40 @@
     font-size: 2rem;
   }
 
-  .values-grid-landing {
+  /* Mission Card - Stack on tablet */
+  .mission-content {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 2rem;
+  }
+
+  .mission-text-card {
+    padding: 2.5rem 2rem;
+  }
+
+  .mission-text-card h2 {
+    font-size: 2rem;
+  }
+
+  .mission-image-card {
+    min-height: 350px;
+  }
+
+  /* Values Card - Stack on tablet */
+  .values-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .values-text-card {
+    padding: 2.5rem 2rem;
+  }
+
+  .values-text-card h2 {
+    font-size: 2rem;
+  }
+
+  .values-image-card {
+    min-height: 350px;
   }
 }
 
@@ -382,6 +527,78 @@
   .cta-text {
     font-size: 1.1rem;
   }
+
+  /* Mission Card - Mobile */
+  .mission-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .mission-text-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .mission-text-card h2 {
+    font-size: 1.75rem;
+  }
+
+  .mission-text-card .card-text {
+    font-size: 1.05rem;
+  }
+
+  .mission-image-card {
+    min-height: 300px;
+  }
+
+  /* Values Card - Mobile */
+  .values-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .values-text-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .values-text-card h2 {
+    font-size: 1.75rem;
+  }
+
+  .value-item h3 {
+    font-size: 1.05rem;
+  }
+
+  .value-item p {
+    font-size: 0.9rem;
+  }
+
+  .values-image-card {
+    min-height: 300px;
+  }
+
+  /* Contact Card - Mobile */
+  .contact-container {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .contact-title {
+    font-size: 1.75rem;
+  }
+
+  .contact-description {
+    font-size: 1rem;
+  }
+
+  .contact-item-new {
+    padding: 0.875rem 1.5rem;
+  }
+
+  .contact-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .contact-text {
+    font-size: 1.05rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -409,16 +626,44 @@
     font-size: 1rem;
   }
 
-  .value-icon-small {
-    font-size: 1.5rem;
-  }
-
   .value-item h3 {
     font-size: 1.05rem;
   }
 
   .value-item p {
     font-size: 0.9rem;
+  }
+
+  /* Contact Card - Extra Small */
+  .contact-container {
+    padding: 2rem 1.25rem;
+    border-radius: 24px;
+  }
+
+  .contact-title {
+    font-size: 1.5rem;
+  }
+
+  .contact-description {
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+  }
+
+  .contact-item-new {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .contact-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .contact-text {
+    font-size: 1rem;
+    text-align: center;
   }
 }
 
