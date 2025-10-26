@@ -6,90 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import '../App.css';
 import GoogleMapDisplay from './GoogleMapDisplay';
 
-const locations = {
-  "4": {
-    "type": {"shelter": true, "charity": false},
-    "EIN": 6,
-    "name": "Shelter1",
-    "address": "123 Shelter St",
-    "location": { "lat": 0, "lng": 0},
-    "ammenities": {
-        "accessible": false,
-        "lgbtq_only": false,
-
-        "male_only": false,
-        "female_only": false,
-        "all_gender": false,
-        "pet_friendly": false,
-        "languages": ["english"],
-        "family_rooming": false,
-        "beds_available": 10,
-        "medical_support": true,
-        "counseling_support": true,
-        "fees": 0,
-        "age_minimum": 0,
-        "age_maximum": 18,
-        "veteran_only": true,
-        "immigrant_only": true,
-        "refugee_only": true,
-        "good_criminal_record_standing": false,
-        "sobriety_required": true,
-        "showers": true,
-        "id_required": false
-    },
-    "needs": [
-      {"category":"food", "item": "canned beans", "needed": 200, "have": 150, "urgency": "high"},
-      {"category":"clothing", "item": "jackets", "needed": 50, "have": 30, "urgency": "low"}
-    ],
-    "hours": {
-      "monday": "0000-2359",
-      "tuesday": "0000-2359",
-      "wednesday": "0000-2359",
-      "thursday": "0000-2359",
-      "friday": "0000-2359",
-      "saturday": "0000-2359",
-      "sunday": "0000-2359"
-    },
-    "description": "Shelter for homeless",
-    "contact": {
-      "phone": "123-456-7890",
-      "email": "shelteremail@domain.tld",
-      "website": "shelterwebsite.com"
-    },
-    "verified": true,
-    "timestamp": ""
-  },
-  "1": {
-    "type": {"shelter": false, "charity": true},
-    "EIN": 0,
-    "name": "Centre County Food Bank",
-    "address": "123 Main St, State College, PA",
-    "location": { "lat": 40.793, "lng": -77.86 },
-    "ammenities": {},
-    "needs": [
-      {"category":"food", "item": "canned beans", "needed": 200, "have": 150, "urgency": "high"},
-      {"category":"clothing", "item": "jackets", "needed": 50, "have": 30, "urgency": "low"}
-    ],
-    "hours": {
-      "monday": "0000-2359",
-      "tuesday": "0000-2359",
-      "wednesday": "0000-2359",
-      "thursday": "0000-2359",
-      "friday": "0000-2359",
-      "saturday": "0000-2359",
-      "sunday": "0000-2359"
-    },
-    "description": "Local non-profit collecting food and clothing for low-income families.",
-    "contact": {
-      "phone": "814-555-1234",
-      "email": "info@foodbank.org",
-      "website": "https://foodbank.org"
-    },
-    "verified": true,
-    "timestamp": "2025-10-25T03:00:00Z"
-  }
-}
-
 async function getSupplyMatches(requestData) {
   // Use your Render URL from environment variables
   // Make sure to create a .env.local file with REACT_APP_API_URL=https://your-service-name.onrender.com
@@ -185,11 +101,11 @@ export default function Main() {
               item: d.itemName,
               quantity: d.quantity
             })) }
-        : null; // Send null if items array is empty
+        : null;
 
       const requestData = {
         location: userLocation,
-        radius: radius,
+        radius: parseInt(radius, 10),
         donor_items: donorItemsPayload
       };
 
@@ -382,7 +298,20 @@ export default function Main() {
             </div>
           ) : (
             <>
-              <h4 className="mt-2">Top Matches within 1 mi</h4>
+              <h4 className="mt-2 d-flex align-items-center">
+              Top Matches within&nbsp;
+              <select
+                value={radius}
+                onChange={(e) => setRadius(Number(e.target.value))}
+                className="radius-select"
+              >
+                <option value={1}>1 mi</option>
+                <option value={5}>5 mi</option>
+                <option value={10}>10 mi</option>
+                <option value={20}>20 mi</option>
+                <option value={50}>50 mi</option>
+              </select>
+            </h4>
               <div className="location-list pt-2">
                 {locations && Object.keys(locations).map(locationId => {
                   const location = locations[locationId];
@@ -391,7 +320,7 @@ export default function Main() {
                     <Location 
                       key={locationId}
                       name={location.name}
-                      score={"??%"} 
+                      score={location.score} 
                       image={'/assets/imgs/img1.png'}
                       ID = {locationId}
                       onSelect={handleSelectLocation}
