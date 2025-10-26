@@ -19,33 +19,26 @@ const DonorPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // 🧭 Log page load
+  // 🧭 Page startup
   useEffect(() => {
-    console.log('📄 Donor Registration Page Loaded');
+    console.log('%c📄 Donor Registration Page Loaded', 'color: dodgerblue; font-weight: bold;');
   }, []);
 
-  // --- Validation Helpers ---
+  // --- Validation helpers ---
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validatePhone = (phone) => /^\d{3}-\d{3}-\d{4}$/.test(phone);
   const validatePassword = (password) => password.length >= 8;
 
-  // --- Input Change Handler ---
+  // --- Input change handler ---
   const handleDonorChange = (e) => {
     const { name, value } = e.target;
-    console.log(`✏️ Field changed: ${name} → ${value}`);
-    setDonorData({
-      ...donorData,
-      [name]: value
-    });
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
-      });
-    }
+    console.log(`✏️ Input changed → ${name}:`, value);
+    setDonorData({ ...donorData, [name]: value });
+
+    if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
 
-  // --- Client-Side Validation ---
+  // --- Validate form ---
   const validateForm = () => {
     const newErrors = {};
 
@@ -63,25 +56,30 @@ const DonorPage = () => {
     else if (!validatePassword(donorData.password))
       newErrors.password = 'Password must be at least 8 characters';
 
-    if (!donorData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
+    if (!donorData.confirmPassword)
+      newErrors.confirmPassword = 'Please confirm your password';
     else if (donorData.password !== donorData.confirmPassword)
       newErrors.confirmPassword = 'Passwords do not match';
 
     setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      console.error('%c❌ Validation errors:', 'color: crimson; font-weight: bold;', newErrors);
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
-  // --- Submit Handler ---
+  // --- Submit handler ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('🚀 Form submitted');
+    console.log('%c🚀 Form submitted', 'color: green; font-weight: bold;');
 
     if (!validateForm()) {
-      console.warn('⚠️ Validation failed:', errors);
+      console.warn('⚠️ Form validation failed.');
       return;
     }
 
-    // Prepare data for backend
     const userPayload = {
       name: donorData.name,
       phone_number: donorData.phone_number,
@@ -93,9 +91,9 @@ const DonorPage = () => {
       donor: donorData.donor
     };
 
-    try {
-      console.log('🌐 Sending POST → https://give-get.onrender.com/api/user/create', userPayload);
+    console.log('%c🌐 Sending POST → /api/user/create', 'color: orange; font-weight: bold;', userPayload);
 
+    try {
       const response = await fetch('https://give-get.onrender.com/api/user/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -103,23 +101,26 @@ const DonorPage = () => {
       });
 
       console.log('📡 Response status:', response.status);
-      const result = await response.json();
-      console.log('📦 Backend Response:', result);
 
-      if (result.status === 'success') {
-        console.log('✅ Donor successfully registered');
+      const result = await response.json();
+      console.log('%c📦 Backend Response:', 'color: teal; font-weight: bold;', result);
+
+      if (response.ok && result.status === 'success') {
+        console.log('%c✅ Donor successfully registered', 'color: limegreen; font-weight: bold;');
         setIsRegistered(true);
       } else {
-        alert('❌ Registration failed: ' + (result.message || 'Unknown error'));
+        console.error('%c❌ Backend error:', 'color: red; font-weight: bold;', result);
+        alert('Registration failed: ' + (result.message || 'Unknown error'));
       }
     } catch (err) {
-      console.error('❌ Network error connecting to backend:', err);
+      console.error('%c🔥 Network / Fetch error:', 'color: red; font-weight: bold;', err);
       alert('Could not connect to backend. Please try again later.');
     }
   };
 
   // --- Success Page ---
   if (isRegistered) {
+    console.log('%c🎉 Registration Success Page Rendered', 'color: green; font-weight: bold;');
     return (
       <div className="donor-page">
         <div className="success-container">
@@ -131,7 +132,13 @@ const DonorPage = () => {
             <p>{donorData.email}</p>
             <p>{donorData.address}</p>
           </div>
-          <button className="btn-primary btn-full" onClick={() => window.location.href = '/dashboard'}>
+          <button
+            className="btn-primary btn-full"
+            onClick={() => {
+              console.log('%c➡️ Navigating to dashboard...', 'color: dodgerblue;');
+              window.location.href = '/dashboard';
+            }}
+          >
             Continue to Dashboard
           </button>
         </div>
@@ -139,7 +146,7 @@ const DonorPage = () => {
     );
   }
 
-  // --- Registration Form ---
+  // --- Form Page ---
   return (
     <div className="donor-page">
       <div className="donor-container">
