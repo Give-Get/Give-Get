@@ -4,6 +4,7 @@ import Login from './Login';
 import Main from './Main';
 import Landing from './Landing';
 import OrganizationsPage from '../OrganizationsPage';
+import DonorPage from './DonorPage';
 
 /** Simple auth guard using localStorage flag 'auth' (replace with real auth) */
 function RequireAuth({ children }) {
@@ -18,7 +19,8 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/app" element={<RequireAuth><Main /></RequireAuth>} />
       <Route path="/register-organization" element={<OrganizationsPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/register-donor" element={<DonorPage />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
