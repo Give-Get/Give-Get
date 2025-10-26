@@ -37,8 +37,8 @@ export default function Login() {
               </button>
               <button
                 type="button"
-                className={`btn ${type === 'center' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                onClick={() => setType('center')}
+                className={`btn ${type === 'organization' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                onClick={() => setType('organization')}
               >
                 Organization
               </button>
