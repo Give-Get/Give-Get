@@ -72,6 +72,7 @@ const DonorPage = () => {
 
   // --- Submit handler ---
   const handleSubmit = async (e) => {
+    console.log("hello")
     e.preventDefault();
     console.log('%c🚀 Form submitted', 'color: green; font-weight: bold;');
 
