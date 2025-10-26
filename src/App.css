@@ -76,6 +76,28 @@ body {
   color: #000000 !important;
 }
 
+.btn-outline-secondary {
+  background-color: transparent !important;
+  border-color: #dee2e6 !important;
+  color: #6c757d !important;
+  font-weight: 600 !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #e9ecef !important;
+  border-color: #dee2e6 !important;
+  color: #495057 !important;
+}
+
+.btn-outline-secondary:focus,
+.btn-outline-secondary:focus-visible,
+.btn-outline-secondary:active {
+  background-color: #e9ecef !important;
+  border-color: #dee2e6 !important;
+  color: #495057 !important;
+  box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.15) !important;
+}
+
 /* Pressed state */
 /* .btn-primary:active,
 .btn-primary.active {
