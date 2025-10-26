@@ -3,16 +3,16 @@ import './OrganizationsPage.css';
 
 function OrganizationsPage() {
   const [formData, setFormData] = useState({
-
+    // Type
     isShelter: false,
     isCharity: false,
 
+    // Basic Info
     ein: '',
     name: '',
     address: '',
-    lat: '',
-    lng: '',
-    
+
+    // Amenities
     accessible: false,
     lgbtq_only: false,
     male_only: false,
@@ -35,6 +35,7 @@ function OrganizationsPage() {
     showers: false,
     id_required: false,
 
+    // Hours
     monday: '',
     tuesday: '',
     wednesday: '',
@@ -43,8 +44,10 @@ function OrganizationsPage() {
     saturday: '',
     sunday: '',
 
+    // Description
     description: '',
 
+    // Contact
     phone: '',
     email: '',
     website: ''
@@ -63,15 +66,18 @@ function OrganizationsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate that at least one organization type is selected
     if (!formData.isShelter && !formData.isCharity) {
       alert('Please select at least one organization type (Shelter or Charity)');
       return;
     }
 
+    // Parse languages from comma-separated string
     const languagesArray = formData.languages
       ? formData.languages.split(',').map(lang => lang.trim())
       : ['english'];
 
+    // Create new organization object matching your JSON structure
     const newOrg = {
       type: {
         shelter: formData.isShelter,
@@ -80,10 +86,6 @@ function OrganizationsPage() {
       EIN: parseInt(formData.ein) || 0,
       name: formData.name,
       address: formData.address,
-      location: {
-        lat: parseFloat(formData.lat) || 0,
-        lng: parseFloat(formData.lng) || 0
-      },
       ammenities: {
         accessible: formData.accessible,
         lgbtq_only: formData.lgbtq_only,
@@ -128,6 +130,7 @@ function OrganizationsPage() {
     };
 
     try {
+      // Send to backend API
       const response = await fetch('http://localhost:5000/api/organizations', {
         method: 'POST',
         headers: {
@@ -139,15 +142,18 @@ function OrganizationsPage() {
       const result = await response.json();
 
       if (result.success) {
+        // Update the organization with verified status from backend
         const updatedOrg = {
           ...newOrg,
           verified: result.verification_status.verified,
           trust_score: result.verification_status.trust_score,
           trust_level: result.verification_status.trust_level
         };
-        
+
+        // Add to local state with updated verification status
         setOrganizations([...organizations, updatedOrg]);
 
+        // Show success message with verification status
         alert(
           `Organization registered successfully!\n\n` +
           `Organization ID: ${result.organization_id}\n` +
@@ -176,17 +182,17 @@ function OrganizationsPage() {
         'Data saved locally only.'
       );
 
+      // Still add to local state as fallback
       setOrganizations([...organizations, newOrg]);
     }
-    
+
+    // Reset form (keeping it tedious - they have to fill it all again!)
     setFormData({
       isShelter: false,
       isCharity: false,
       ein: '',
       name: '',
       address: '',
-      lat: '',
-      lng: '',
       accessible: false,
       lgbtq_only: false,
       male_only: false,
@@ -293,34 +299,6 @@ function OrganizationsPage() {
               required
               placeholder="123 Main St, City, State ZIP"
             />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="lat">Latitude</label>
-              <input
-                type="number"
-                step="any"
-                id="lat"
-                name="lat"
-                value={formData.lat}
-                onChange={handleChange}
-                placeholder="40.793"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="lng">Longitude</label>
-              <input
-                type="number"
-                step="any"
-                id="lng"
-                name="lng"
-                value={formData.lng}
-                onChange={handleChange}
-                placeholder="-77.86"
-              />
-            </div>
           </div>
 
           <div className="form-group">

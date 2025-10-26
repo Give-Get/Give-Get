@@ -163,6 +163,9 @@ export default function Main() {
     setDonations(prev => prev.filter(donation => donation.id !== id));
   }
 
+  // Derive the selected location object for convenience
+  const selectedLocation = selectedLocationId ? locations[selectedLocationId] : null;
+
   return (
     <div className="main-container">
 <aside className="sidebar">
@@ -218,27 +221,27 @@ export default function Main() {
         </div>
       </main>
 
-          <div className="horizontal-bar card">
-            <div className="card-body">
-              <h4 className="mb-2">Top Matches within 1 mi</h4>
-              <div className="location-list pt-2">
-                {locations && Object.keys(locations).map(locationId => {
-                  const location = locations[locationId];
-                  
-                  return (
-                    <Location 
-                      key={locationId}
-                      name={location.name}
-                      score={"??%"} 
-                      image={'/assets/imgs/img1.png'}
-                      ID = {locationId}
-                      onSelect={handleSelectLocation}
-                    />
-                  );
-                })}
-              </div>
-            </div>
+      <div className="horizontal-bar card">
+        <div className="card-body">
+          <h4 className="mb-2">Top Matches within 1 mi</h4>
+          <div className="location-list pt-2">
+            {locations && Object.keys(locations).map(locationId => {
+              const location = locations[locationId];
+              
+              return (
+                <Location 
+                  key={locationId}
+                  name={location.name}
+                  score={"??%"} 
+                  image={'/assets/imgs/img1.png'}
+                  ID = {locationId}
+                  onSelect={handleSelectLocation}
+                />
+              );
+            })}
           </div>
         </div>
+      </div>
+    </div>
   );
 }
