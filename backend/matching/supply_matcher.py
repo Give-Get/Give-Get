@@ -9,12 +9,12 @@ Main function: sort_organizations_by_need(location, radius, donor_items)
 - Returns ranked organizations by how much they need the items
 """
 
-# TODO: Import these functions from your modules:
-# from backend.database import get_orgs_within_radius
-# 
-# Expected signatures:
-# get_orgs_within_radius(location: dict, radius: int, org_type: dict) -> list[tuple]
-#   Returns: [(distance_miles, organization_dict), ...] (NOT sorted)
+# Import database function
+import sys
+import os
+# Add parent directory to path to import db module
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from db import get_orgs_within_radius
 
 
 def sort_organizations_by_need(location: dict, radius: int, donor_items: dict = None) -> dict:
@@ -76,7 +76,7 @@ def sort_organizations_by_need(location: dict, radius: int, donor_items: dict = 
         org_with_score = org_data.copy()
         org_with_score["score"] = int(round(score))  # Always round to integer
         ranked_orgs[i] = org_with_score
-    print(f"Ranked organizations: {ranked_orgs}")
+    
     return ranked_orgs
 
 

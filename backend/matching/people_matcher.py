@@ -10,16 +10,12 @@ Main function: match_person_to_shelters(person, shelters)
 
 """
 
-# TODO: Import these functions from your modules:
-# from backend.database import get_orgs_within_radius
-# from backend.utils import sort_by_match_score
-# 
-# Expected signatures:
-# get_orgs_within_radius(location: dict, radius: int, org_type: dict) -> list[tuple]
-#   Returns: [(distance_miles, organization_dict), ...] (NOT sorted)
-#
-# sort_by_match_score(scored_list: list[tuple]) -> list[tuple]
-#   Sorts list of tuples by the third element (score) in descending order
+# Import database function
+import sys
+import os
+# Add parent directory to path to import db module
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from db import get_orgs_within_radius
 
 def sort_shelters_by_score(location: dict, radius: int, person_filters: dict = None) -> list[tuple]:
     """
@@ -90,7 +86,6 @@ def sort_shelters_by_score(location: dict, radius: int, person_filters: dict = N
         org_with_score["score"] = int(round(score))  # Always round to integer
         ranked_orgs[i] = org_with_score
     
-    print(f"Ranked organizations: {ranked_orgs}")
     return ranked_orgs
 
 

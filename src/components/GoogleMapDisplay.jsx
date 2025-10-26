@@ -226,7 +226,7 @@ const GoogleMapDisplay = ({ selectedLocationId, routeToId, locations, userLocati
   return (
     <div
       ref={mapRef}
-      style={{ width: '100%', height: '400px' }}
+      style={{ width: '100%', height: '100%' }}
       aria-label="Google Map"
     />
   );
