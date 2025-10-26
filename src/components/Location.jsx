@@ -22,7 +22,7 @@ function Location({ ID, name, score, image, onSelect }) {
         }
       }}
     >
-      <div className="location-badge">{score}</div>
+      <div className="location-badge">{score}%</div>
       <div className="location-gradient" />
       <div className="location-name">{name}</div>
     </div>
