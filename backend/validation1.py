@@ -448,25 +448,331 @@ class AdminDashboard:
                 break
 
 
+# ============================================================================
+# FASTAPI - Web Service Layer
+# ============================================================================
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional
+
+# Pydantic models for request/response validation
+class OrganizationType(BaseModel):
+    shelter: bool
+    charity: bool
+
+class Location(BaseModel):
+    lat: float
+    lng: float
+
+class Amenities(BaseModel):
+    accessible: bool
+    lgbtq_only: bool
+    male_only: bool
+    female_only: bool
+    all_gender: bool
+    pet_friendly: bool
+    languages: list[str]
+    family_rooming: bool
+    beds_available: int
+    medical_support: bool
+    counseling_support: bool
+    fees: float
+    age_minimum: int
+    age_maximum: int
+    veteran_only: bool
+    immigrant_only: bool
+    refugee_only: bool
+    good_criminal_record_standing: bool
+    sobriety_required: bool
+    showers: bool
+    id_required: bool
+
+class Hours(BaseModel):
+    monday: str
+    tuesday: str
+    wednesday: str
+    thursday: str
+    friday: str
+    saturday: str
+    sunday: str
+
+class Contact(BaseModel):
+    phone: str
+    email: str
+    website: str
+
+class OrganizationCreate(BaseModel):
+    type: OrganizationType
+    EIN: int
+    name: str
+    address: str
+    location: Location
+    ammenities: Amenities
+    needs: dict
+    hours: Hours
+    description: str
+    contact: Contact
+    verified: bool
+    timestamp: str
+
+def create_fastapi_app(verifier_instance: VerificationService):
+    """Create and configure FastAPI app with the verification service"""
+    app = FastAPI(
+        title="Organization Registration API",
+        description="API for registering and verifying organizations",
+        version="1.0.0"
+    )
+
+    # Enable CORS for React frontend
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    def save_organization_to_json(org_data):
+        """Save organization data to organizations.json"""
+        json_path = Path("organizations.json")
+
+        if json_path.exists():
+            with json_path.open("r") as f:
+                orgs = json.load(f)
+        else:
+            orgs = {}
+
+
+        if orgs:
+            max_id = max(int(k) for k in orgs.keys())
+            new_id = str(max_id + 1)
+        else:
+            new_id = "1"
+
+        # Add new organization
+        orgs[new_id] = org_data
+
+        # Save back to file
+        with json_path.open("w") as f:
+            json.dump(orgs, f, indent=2)
+
+        return new_id
+
+    @app.get("/api/health")
+    async def health_check():
+        """Health check endpoint"""
+        return {"status": "ok", "message": "Backend is running"}
+
+    @app.post("/api/organizations")
+    async def create_organization(org: OrganizationCreate):
+        """Create a new organization"""
+        try:
+            # Convert Pydantic model to dict
+            org_data = org.dict()
+
+            # Save to organizations.json
+            org_id = save_organization_to_json(org_data)
+
+            # Create Organization object for verification
+            organization = Organization(
+                ein=str(org_data["EIN"]),
+                org_name=org_data["name"],
+                email=org_data["contact"]["email"],
+                phone=org_data["contact"]["phone"],
+                website=org_data["contact"]["website"],
+                address=org_data["address"]
+            )
+
+            # Create user in verification system
+            verification_result = verifier_instance.create_user({
+                'name': organization.org_name,
+                'email': organization.email,
+                'phone': organization.phone,
+                'address': organization.address,
+                'id_uploaded': False,  # Will need manual verification
+                'ein': organization.ein
+            })
+
+            # Determine if organization is verified (TRUSTED level = verified)
+            is_verified = verification_result.trust_level == "TRUSTED"
+
+            return {
+                "success": True,
+                "message": "Organization created successfully",
+                "organization_id": org_id,
+                "verification_status": {
+                    "user_id": verification_result.id,
+                    "trust_score": verification_result.trust_score,
+                    "trust_level": verification_result.trust_level,
+                    "status": "pending_review" if verification_result.trust_score < 70 else "approved",
+                    "verified": is_verified
+                }
+            }
+
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error creating organization: {str(e)}")
+
+    @app.get("/api/organizations")
+    async def get_organizations():
+        """Get all organizations"""
+        try:
+            json_path = Path("organizations.json")
+
+            if json_path.exists():
+                with json_path.open("r") as f:
+                    orgs = json.load(f)
+                return {
+                    "success": True,
+                    "organizations": orgs
+                }
+            else:
+                return {
+                    "success": True,
+                    "organizations": {}
+                }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching organizations: {str(e)}")
+
+    @app.get("/api/organizations/{org_id}")
+    async def get_organization(org_id: str):
+        """Get a specific organization"""
+        try:
+            json_path = Path("organizations.json")
+
+            if json_path.exists():
+                with json_path.open("r") as f:
+                    orgs = json.load(f)
+
+                if org_id in orgs:
+                    return {
+                        "success": True,
+                        "organization": orgs[org_id]
+                    }
+                else:
+                    raise HTTPException(status_code=404, detail="Organization not found")
+            else:
+                raise HTTPException(status_code=404, detail="No organizations found")
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching organization: {str(e)}")
+
+    @app.get("/api/users/pending")
+    async def get_pending_users():
+        """Get users pending verification"""
+        try:
+            pending = verifier_instance.get_pending_users()
+            users_data = []
+
+            for user in pending:
+                users_data.append({
+                    "id": user.id,
+                    "name": user.full_name,
+                    "email": user.email,
+                    "phone": user.phone,
+                    "trust_score": user.trust_score,
+                    "trust_level": user.trust_level,
+                    "verification_checks": user.verification_checks
+                })
+
+            return {
+                "success": True,
+                "pending_users": users_data
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching pending users: {str(e)}")
+
+    @app.post("/api/users/{user_id}/approve")
+    async def approve_user(user_id: int):
+        """Approve a user"""
+        try:
+            success = verifier_instance.approve_user(user_id)
+
+            if success:
+                return {
+                    "success": True,
+                    "message": f"User {user_id} approved"
+                }
+            else:
+                raise HTTPException(status_code=404, detail="User not found")
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error approving user: {str(e)}")
+
+    @app.post("/api/users/{user_id}/reject")
+    async def reject_user(user_id: int):
+        """Reject a user"""
+        try:
+            success = verifier_instance.reject_user(user_id)
+
+            if success:
+                return {
+                    "success": True,
+                    "message": f"User {user_id} rejected"
+                }
+            else:
+                raise HTTPException(status_code=404, detail="User not found")
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error rejecting user: {str(e)}")
+
+    return app
+
+
+# ============================================================================
+# MAIN ENTRY POINT
+# ============================================================================
+
 if __name__ == '__main__':
+    import sys
+
+    # Initialize verification service
     verifier = VerificationService()
-    
 
-    print("Users loaded from users.json and organizations.json\n")
-    
-    
-    for user in verifier.get_all_users():
-        print(f"User ID: {user.id}")
-        print(f"Name: {user.full_name}")
-        print(f"Email: {user.email}")
-        print(f"Phone: {user.phone}")
-        print(f"Trust Score: {user.trust_score}")
-        print(f"Trust Level: {user.trust_level}")
-        print("-" * 40)
-    
+    # Check if user wants to run API server or CLI dashboard
+    if len(sys.argv) > 1 and sys.argv[1] == '--api':
+        # Run FastAPI Server
+        import uvicorn
 
-    print("\n" + "="*50)
-    input("Press Enter to open Admin Dashboard...")
-    
-    dashboard = AdminDashboard(verifier)
-    dashboard.run()
+        print("🚀 Starting FastAPI Server...")
+        print("📍 API will be available at: http://localhost:5000")
+        print("📡 CORS enabled for React frontend")
+        print("📚 Interactive API docs: http://localhost:5000/docs")
+        print("📖 Alternative docs: http://localhost:5000/redoc")
+        print("\nAvailable endpoints:")
+        print("  GET  /api/health - Health check")
+        print("  POST /api/organizations - Create organization")
+        print("  GET  /api/organizations - Get all organizations")
+        print("  GET  /api/organizations/{id} - Get specific organization")
+        print("  GET  /api/users/pending - Get pending users")
+        print("  POST /api/users/{id}/approve - Approve user")
+        print("  POST /api/users/{id}/reject - Reject user")
+        print("\n" + "="*50 + "\n")
+
+        app = create_fastapi_app(verifier)
+        uvicorn.run(app, host="127.0.0.1", port=5000)
+    else:
+        # Run CLI Admin Dashboard (default)
+        print("Users loaded from users.json and organizations.json\n")
+
+        for user in verifier.get_all_users():
+            print(f"User ID: {user.id}")
+            print(f"Name: {user.full_name}")
+            print(f"Email: {user.email}")
+            print(f"Phone: {user.phone}")
+            print(f"Trust Score: {user.trust_score}")
+            print(f"Trust Level: {user.trust_level}")
+            print("-" * 40)
+
+        print("\n" + "="*50)
+        print("TIP: Run with '--api' flag to start Flask API server")
+        print("     python validation1.py --api")
+        print("="*50 + "\n")
+        input("Press Enter to open Admin Dashboard...")
+
+        dashboard = AdminDashboard(verifier)
+        dashboard.run()
