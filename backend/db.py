@@ -69,6 +69,8 @@ def create_user(new_json, id=None):
     """
     if not id:
         id = generate_id()
+
+    new_json["_id"] = str(id)
     
     update_user(id, new_json)
     return
@@ -79,6 +81,7 @@ def create_organization(new_json: dict):
     Geocodes the address — raises ValueError if address cannot be found.
     """
     id = generate_id()
+
 
     address = new_json.get("address", "").strip()
 
@@ -91,7 +94,7 @@ def create_organization(new_json: dict):
     except (GeocoderTimedOut, GeocoderUnavailable) as e:
         raise ValueError(f"Geocoding service unavailable or timed out: {str(e)}")
 
-    new_json["_id"] = id
+    new_json["_id"] = str(id)
     update_organization(id, new_json)
     return id
 
