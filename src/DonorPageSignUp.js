@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './DonorPage.css';
 
 const DonorPage = () => {
@@ -19,27 +19,24 @@ const DonorPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  // 🧭 Log page load
+  useEffect(() => {
+    console.log('📄 Donor Registration Page Loaded');
+  }, []);
 
-  const validatePhone = (phone) => {
-    const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
-    return phoneRegex.test(phone);
-  };
+  // --- Validation Helpers ---
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePhone = (phone) => /^\d{3}-\d{3}-\d{4}$/.test(phone);
+  const validatePassword = (password) => password.length >= 8;
 
-  const validatePassword = (password) => {
-    return password.length >= 8;
-  };
-
+  // --- Input Change Handler ---
   const handleDonorChange = (e) => {
     const { name, value } = e.target;
+    console.log(`✏️ Field changed: ${name} → ${value}`);
     setDonorData({
       ...donorData,
       [name]: value
     });
-
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -48,78 +45,80 @@ const DonorPage = () => {
     }
   };
 
+  // --- Client-Side Validation ---
   const validateForm = () => {
     const newErrors = {};
 
-    if (!donorData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
+    if (!donorData.name.trim()) newErrors.name = 'Name is required';
+    if (!donorData.email.trim()) newErrors.email = 'Email is required';
+    else if (!validateEmail(donorData.email)) newErrors.email = 'Invalid email format';
 
-    if (!donorData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(donorData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    if (!donorData.phone_number.trim()) {
-      newErrors.phone_number = 'Phone number is required';
-    } else if (!validatePhone(donorData.phone_number)) {
+    if (!donorData.phone_number.trim()) newErrors.phone_number = 'Phone number is required';
+    else if (!validatePhone(donorData.phone_number))
       newErrors.phone_number = 'Phone format should be XXX-XXX-XXXX';
-    }
 
-    if (!donorData.address.trim()) {
-      newErrors.address = 'Address is required';
-    }
+    if (!donorData.address.trim()) newErrors.address = 'Address is required';
 
-    if (!donorData.password) {
-      newErrors.password = 'Password is required';
-    } else if (!validatePassword(donorData.password)) {
+    if (!donorData.password) newErrors.password = 'Password is required';
+    else if (!validatePassword(donorData.password))
       newErrors.password = 'Password must be at least 8 characters';
-    }
 
-    if (!donorData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (donorData.password !== donorData.confirmPassword) {
+    if (!donorData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
+    else if (donorData.password !== donorData.confirmPassword)
       newErrors.confirmPassword = 'Passwords do not match';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // --- Submit Handler ---
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🚀 Form submitted');
 
     if (!validateForm()) {
+      console.warn('⚠️ Validation failed:', errors);
       return;
     }
 
-    const { confirmPassword, password, charity, shelter, donor, ...donorValidation } = donorData;
+    // Prepare data for backend
+    const userPayload = {
+      name: donorData.name,
+      phone_number: donorData.phone_number,
+      email: donorData.email,
+      address: donorData.address,
+      password: donorData.password,
+      charity: donorData.charity,
+      shelter: donorData.shelter,
+      donor: donorData.donor
+    };
 
     try {
-      console.log('🌐 Sending POST → https://give-get.onrender.com/api/user/create');
-      const response = await fetch("https://give-get.onrender.com/api/user/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      console.log('🌐 Sending POST → https://give-get.onrender.com/api/user/create', userPayload);
+
+      const response = await fetch('https://give-get.onrender.com/api/user/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userPayload)
       });
 
-      const result = await res.json();
+      console.log('📡 Response status:', response.status);
+      const result = await response.json();
+      console.log('📦 Backend Response:', result);
 
-      if (result.success) {
-        // If validation succeeds, show success message and proceed
-        console.log('Donor Validation Result:', result);
+      if (result.status === 'success') {
+        console.log('✅ Donor successfully registered');
         setIsRegistered(true);
       } else {
-        // If validation fails, show error
-        alert('Validation failed: ' + result.message);
+        alert('❌ Registration failed: ' + (result.message || 'Unknown error'));
       }
     } catch (err) {
-      console.error('Validation error:', err);
-      alert('Could not connect to backend validator. Please try again later.');
+      console.error('❌ Network error connecting to backend:', err);
+      alert('Could not connect to backend. Please try again later.');
     }
   };
 
+  // --- Success Page ---
   if (isRegistered) {
     return (
       <div className="donor-page">
@@ -132,7 +131,7 @@ const DonorPage = () => {
             <p>{donorData.email}</p>
             <p>{donorData.address}</p>
           </div>
-          <button className="btn-primary btn-full">
+          <button className="btn-primary btn-full" onClick={() => window.location.href = '/dashboard'}>
             Continue to Dashboard
           </button>
         </div>
@@ -140,6 +139,7 @@ const DonorPage = () => {
     );
   }
 
+  // --- Registration Form ---
   return (
     <div className="donor-page">
       <div className="donor-container">
@@ -150,7 +150,9 @@ const DonorPage = () => {
 
         <form onSubmit={handleSubmit} className="donor-form">
           <div className="form-group">
+            <label htmlFor="name">Full Name</label>
             <input
+              autoComplete="name"
               type="text"
               id="name"
               name="name"
@@ -163,7 +165,9 @@ const DonorPage = () => {
           </div>
 
           <div className="form-group">
+            <label htmlFor="email">Email</label>
             <input
+              autoComplete="email"
               type="email"
               id="email"
               name="email"
@@ -176,7 +180,9 @@ const DonorPage = () => {
           </div>
 
           <div className="form-group">
+            <label htmlFor="phone_number">Phone Number</label>
             <input
+              autoComplete="tel"
               type="tel"
               id="phone_number"
               name="phone_number"
@@ -189,7 +195,9 @@ const DonorPage = () => {
           </div>
 
           <div className="form-group">
+            <label htmlFor="address">Street Address</label>
             <input
+              autoComplete="street-address"
               type="text"
               id="address"
               name="address"
@@ -202,7 +210,9 @@ const DonorPage = () => {
           </div>
 
           <div className="form-group password-group">
+            <label htmlFor="password">Password</label>
             <input
+              autoComplete="new-password"
               type={showPassword ? 'text' : 'password'}
               id="password"
               name="password"
@@ -222,7 +232,9 @@ const DonorPage = () => {
           </div>
 
           <div className="form-group password-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
             <input
+              autoComplete="new-password"
               type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
               name="confirmPassword"
