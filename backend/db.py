@@ -116,7 +116,7 @@ def get_orgs_within_radius(location, radius, org_type = None):
     """
     location: {"lat": 0, "long": 0} <----- is actually the location of the donor, will need to add location entry to user 
     radius: (miles)
-    org_type: type of organization you want to query: none by default
+    org_type: type of organization you want to query, input as "{"shelter": false, "charity": true}": none by default
     """
     lat, lon = location['lat'], location['lng'] 
     all_orgs_dict = db.organizations.find()
@@ -128,10 +128,16 @@ def get_orgs_within_radius(location, radius, org_type = None):
         if dist < radius:
             orgs_within_radius.append((dist, org))
 
+    org_types = []
+    if org_type["shelter"]:
+        org_types += ["shelter"]
+    if org_type["charity"]:
+        org_types += ["charity"]
+
     if not org_type:
-        return [(d, {o["_id"]: o}) for d, o in orgs_within_radius]
+        return [(d, o) for d, o in orgs_within_radius]
     else: 
-        return [(d, {o["_id"]: o}) for d, o in orgs_within_radius if o['type'][org_type] == True]
+        return [(d, o) for d, o in orgs_within_radius if (len(org_types) == 2 and (o['type'][org_types[0]] or o['type'][org_types[1]] )) or (len(org_types) == 1 and (o['type'][org_types[0]]))]
 
 
 def get_org_coords(org_dict):
