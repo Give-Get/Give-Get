@@ -54,6 +54,10 @@ body {
   letter-spacing: var(--tracking-base);
 }
 
+.btn {
+  border-radius: 25px !important;
+}
+
 .btn-primary,
 .btn-primary:focus,
 .btn-primary:focus-visible,
@@ -186,14 +190,13 @@ h4 {
 .main-container {
   display: grid;
   grid-template-columns: 280px 1fr;
-  /*grid-template-rows: 1fr auto; /* media area grows, horizontal bar sized by content */
+  grid-template-rows: 1fr auto;
   grid-template-areas:
     "sidebar media"
     "sidebar horizontal";
-  gap: 12px; /* slightly reduced gap to save vertical space */
-  padding: 0.9rem; /* slightly smaller padding */
+  gap: 12px;
+  padding: 0.9rem 0.9rem 0;
   height: calc(100vh - 64px); /* viewport minus fixed header */
-  align-items: start;
 }
 
 /* Sidebar */
@@ -204,7 +207,16 @@ h4 {
   gap: 1rem;
   padding: 0.5rem 0;
   height: 100%;
-  overflow: auto; /* allow sidebar content to scroll independently if needed */
+  overflow: hidden; /* prevent overflow */
+  position: relative; /* for absolute positioning of sidebar-bottom */
+}
+
+.donation-list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex: 1;
+  padding-bottom: 0;
 }
 
 /* Right column: use a content-column that controls the width of media + horizontal bar */
@@ -217,7 +229,9 @@ h4 {
 }
 
 .content-column {
-  width: min(1200px, 100%);
+  width: 100%;
+  max-width: 1200px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   /* justify-content: space-between; */
@@ -249,24 +263,79 @@ h4 {
 
 /* Location list items: narrow cards for lists */
 .location-item {
-  width: 200px;
+  width: 245px;
   flex: 0 0 200px; /* keep predictable size in rows */
   max-width: 100%; /* shrink on very small screens */
+  height: 145px; /* fixed height for visual alignment */
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  color: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 /* container that lays out location items horizontally */
 .location-list {
   display: flex;
   flex-direction: row;
-  gap: 24px;
-  align-items: flex-start;
-  flex-wrap: wrap; /* wrap to next line on small widths */
+  gap: 30px;
+  align-items: flex-end; /* keep items visually aligned to bottom */
+  flex-wrap: nowrap; /* keep all items on one row */
+  overflow-x: auto; /* allow horizontal scroll when items overflow */
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity; /* optional: snap items into view */
   margin-top: 0.5rem;
+  padding-bottom: 0; /* remove bottom padding so bottoms align */
 }
 
 /* small tweak: make location cards a bit more compact */
-.location-item .card-body {
+/* .location-item .card-body {
   padding: 0.75rem;
+} */
+
+/* Make location items participate in scroll snapping */
+.location-item {
+  scroll-snap-align: start;
+}
+
+/* badge in the top-right */
+.location-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #2ee079;
+  color: #000000;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* subtle gradient at bottom to improve text contrast */
+.location-gradient {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%);
+}
+
+.location-name {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+
+.clickable:focus {
+  outline: 3px solid rgba(46,224,121,0.35);
+  outline-offset: 2px;
 }
 
 /* horizontal bar matches content-column width (100% of that column) */
@@ -277,6 +346,10 @@ h4 {
   flex: 0 0 auto;
 }
 
+.horizontal-bar .card-body {
+  padding-bottom: 0;
+}
+
 .sidebar-top {
   display: flex;
   flex-direction: column;
@@ -284,11 +357,18 @@ h4 {
   justify-content: center; /* vertical centering within the sidebar-top box */
   text-align: center;
   gap: 0.5rem;
-  padding: 1rem 0;
+  padding: 1rem 0 0;
 }
 
 /* keep sidebar bottom element stuck to bottom */
-.sidebar-bottom { margin-top: auto; }
+.sidebar-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: var(--bs-body-bg);
+}
 
 /* Responsive: stack and keep all content inside viewport on small screens */
 @media (max-width: 991px) {
@@ -353,4 +433,19 @@ h4 {
     min-height: 52px !important;
     font-size: 0.9rem !important;
   }
+}
+
+.add-item-button {
+  border-radius: 24px !important;
+}
+
+.add-item-form {
+  border-radius: 24px;
+  background-color: #f1f1f1;
+  border-color: #ffffff;
+}
+
+.card-description {
+  font-size: 0.75rem;
+  color: var(--bs-body-color);
 }
