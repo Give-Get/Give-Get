@@ -114,9 +114,17 @@ def collect_organization(id:str):
 
 def get_orgs_within_radius(location, radius, org_type = None):
     """
-    location: {"lat": 0, "long": 0} <----- is actually the location of the donor, will need to add location entry to user 
-    radius: (miles)
-    org_type: type of organization you want to query, input as "{"shelter": false, "charity": true}": none by default
+    Retrieve organizations within a specified radius from a location.
+    
+    Args:
+        location: {"lat": float, "lng": float} - Location to search from
+        radius: int - Search radius in miles
+        org_type: dict (optional) - Organization type filter
+            Example: {"shelter": True, "charity": False} or {"shelter": True, "charity": True}
+    
+    Returns:
+        list[tuple]: List of (distance_miles, organization_dict) tuples
+            Example: [(2.5, {...org_data...}), (5.1, {...org_data...}), ...]
     """
     lat, lon = location['lat'], location['lng'] 
     all_orgs_dict = db.organizations.find()

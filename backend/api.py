@@ -1,7 +1,7 @@
 """
 api.py
 
-FastAPI endpoints for matching services
+FastAPI endpoints for matching services and organization management
 """
 
 from fastapi import FastAPI, HTTPException
@@ -10,6 +10,8 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 import sys
 import os
+import json
+from pathlib import Path
 
 # Add backend directory to path for imports
 backend_path = os.path.dirname(os.path.abspath(__file__))
@@ -19,10 +21,16 @@ sys.path.insert(0, backend_path)
 from matching.people_matcher import sort_shelters_by_score
 from matching.supply_matcher import sort_organizations_by_need
 
+# Import verification service
+from validation_service import VerificationService, Organization
+
+# Initialize verification service
+verifier = VerificationService()
+
 # Initialize FastAPI app
 app = FastAPI(
-    title="Give and Get Matching API",
-    description="API for matching people to shelters/charities and donors to organizations",
+    title="Give and Get API",
+    description="Complete API for matching people to shelters/charities, donors to organizations, and organization management",
     version="1.0.0"
 )
 
@@ -131,6 +139,73 @@ class SupplyMatchRequest(BaseModel):
     )
 
 
+# ==================== ORGANIZATION MODELS (from validation1.py) ====================
+
+class OrganizationType(BaseModel):
+    """Organization type flags"""
+    shelter: bool
+    charity: bool
+
+
+class Amenities(BaseModel):
+    """Organization amenities and restrictions"""
+    accessible: bool
+    lgbtq_only: bool
+    male_only: bool
+    female_only: bool
+    all_gender: bool
+    pet_friendly: bool
+    languages: List[str]
+    family_rooming: bool
+    beds_available: int
+    medical_support: bool
+    counseling_support: bool
+    fees: float
+    age_minimum: int
+    age_maximum: int
+    veteran_only: bool
+    immigrant_only: bool
+    refugee_only: bool
+    good_criminal_record_standing: bool
+    sobriety_required: bool
+    showers: bool
+    id_required: bool
+
+
+class Hours(BaseModel):
+    """Operating hours for each day of the week"""
+    monday: str
+    tuesday: str
+    wednesday: str
+    thursday: str
+    friday: str
+    saturday: str
+    sunday: str
+
+
+class Contact(BaseModel):
+    """Contact information"""
+    phone: str
+    email: str
+    website: str
+
+
+class OrganizationCreate(BaseModel):
+    """Request body for creating a new organization"""
+    type: OrganizationType
+    EIN: int
+    name: str
+    address: str
+    location: Location
+    ammenities: Amenities
+    needs: Dict[str, Any]
+    hours: Hours
+    description: str
+    contact: Contact
+    verified: bool
+    timestamp: str
+
+
 # ==================== ENDPOINTS ====================
 
 @app.get("/")
@@ -143,10 +218,210 @@ def root():
         "endpoints": {
             "people_matching": "/api/match-people",
             "supply_matching": "/api/match-supplies",
+            "about_us": "/api/about",
+            "organizations": "/api/organizations",
+            "pending_users": "/api/users/pending",
             "documentation": "/docs"
         }
     }
 
+
+# ==================== ORGANIZATION MANAGEMENT ENDPOINTS ====================
+
+def save_organization_to_json(org_data: dict) -> str:
+    """Save organization data to organizations.json"""
+    json_path = Path("organizations.json")
+    
+    if json_path.exists():
+        with json_path.open("r") as f:
+            orgs = json.load(f)
+    else:
+        orgs = {}
+    
+    if orgs:
+        max_id = max(int(k) for k in orgs.keys())
+        new_id = str(max_id + 1)
+    else:
+        new_id = "1"
+    
+    # Add new organization
+    orgs[new_id] = org_data
+    
+    # Save back to file
+    with json_path.open("w") as f:
+        json.dump(orgs, f, indent=2)
+    
+    return new_id
+
+
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "ok", "message": "Backend is running"}
+
+
+@app.post("/api/organizations")
+async def create_organization(org: OrganizationCreate):
+    """Create a new organization"""
+    try:
+        # Convert Pydantic model to dict
+        org_data = org.dict()
+        
+        # Save to organizations.json
+        org_id = save_organization_to_json(org_data)
+        
+        # Create Organization object for verification
+        organization = Organization(
+            ein=str(org_data["EIN"]),
+            org_name=org_data["name"],
+            email=org_data["contact"]["email"],
+            phone=org_data["contact"]["phone"],
+            website=org_data["contact"]["website"],
+            address=org_data["address"]
+        )
+        
+        # Create user in verification system
+        verification_result = verifier.create_user({
+            'name': organization.org_name,
+            'email': organization.email,
+            'phone': organization.phone,
+            'address': organization.address,
+            'id_uploaded': False,  # Will need manual verification
+            'ein': organization.ein
+        })
+        
+        # Determine if organization is verified (TRUSTED level = verified)
+        is_verified = verification_result.trust_level == "TRUSTED"
+        
+        return {
+            "success": True,
+            "message": "Organization created successfully",
+            "organization_id": org_id,
+            "verification_status": {
+                "user_id": verification_result.id,
+                "trust_score": verification_result.trust_score,
+                "trust_level": verification_result.trust_level,
+                "status": "pending_review" if verification_result.trust_score < 70 else "approved",
+                "verified": is_verified
+            }
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error creating organization: {str(e)}")
+
+
+@app.get("/api/organizations")
+async def get_organizations():
+    """Get all organizations"""
+    try:
+        json_path = Path("organizations.json")
+        
+        if json_path.exists():
+            with json_path.open("r") as f:
+                orgs = json.load(f)
+            return {
+                "success": True,
+                "organizations": orgs
+            }
+        else:
+            return {
+                "success": True,
+                "organizations": {}
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching organizations: {str(e)}")
+
+
+@app.get("/api/organizations/{org_id}")
+async def get_organization(org_id: str):
+    """Get a specific organization"""
+    try:
+        json_path = Path("organizations.json")
+        
+        if json_path.exists():
+            with json_path.open("r") as f:
+                orgs = json.load(f)
+            
+            if org_id in orgs:
+                return {
+                    "success": True,
+                    "organization": orgs[org_id]
+                }
+            else:
+                raise HTTPException(status_code=404, detail="Organization not found")
+        else:
+            raise HTTPException(status_code=404, detail="No organizations found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching organization: {str(e)}")
+
+
+@app.get("/api/users/pending")
+async def get_pending_users():
+    """Get users pending verification"""
+    try:
+        pending = verifier.get_pending_users()
+        users_data = []
+        
+        for user in pending:
+            users_data.append({
+                "id": user.id,
+                "name": user.full_name,
+                "email": user.email,
+                "phone": user.phone,
+                "trust_score": user.trust_score,
+                "trust_level": user.trust_level,
+                "verification_checks": user.verification_checks
+            })
+        
+        return {
+            "success": True,
+            "pending_users": users_data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching pending users: {str(e)}")
+
+
+@app.post("/api/users/{user_id}/approve")
+async def approve_user(user_id: int):
+    """Approve a user"""
+    try:
+        success = verifier.approve_user(user_id)
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"User {user_id} approved"
+            }
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error approving user: {str(e)}")
+
+
+@app.post("/api/users/{user_id}/reject")
+async def reject_user(user_id: int):
+    """Reject a user"""
+    try:
+        success = verifier.reject_user(user_id)
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"User {user_id} rejected"
+            }
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error rejecting user: {str(e)}")
+
+
+# ==================== MATCHING ENDPOINTS ====================
 
 @app.post("/api/match-people", response_model=Dict[str, Any])
 def match_people(request: PeopleMatchRequest):
@@ -266,6 +541,193 @@ def match_supplies(request: SupplyMatchRequest):
         )
 
 
+@app.get("/api/about")
+async def get_about_us():
+    """
+    Get About Us information including mission, impact metrics, and team info.
+    Perfect for displaying on an About Us page.
+    """
+    try:
+        # Calculate real-time impact metrics
+        json_path = Path("organizations.json")
+        total_organizations = 0
+        total_beds_available = 0
+        total_items_needed = 0
+        shelters_count = 0
+        charities_count = 0
+        
+        if json_path.exists():
+            with json_path.open("r") as f:
+                orgs = json.load(f)
+                total_organizations = len(orgs)
+                
+                for org_id, org_data in orgs.items():
+                    # Count organization types
+                    org_type = org_data.get("type", {})
+                    if org_type.get("shelter"):
+                        shelters_count += 1
+                        # Count beds
+                        amenities = org_data.get("ammenities", {})
+                        total_beds_available += amenities.get("beds_available", 0)
+                    if org_type.get("charity"):
+                        charities_count += 1
+                    
+                    # Count items needed
+                    needs = org_data.get("needs", {})
+                    if isinstance(needs, dict):
+                        for item_name, item_data in needs.items():
+                            if isinstance(item_data, dict):
+                                needed = item_data.get("needed", 0)
+                                have = item_data.get("have", 0)
+                                gap = needed - have
+                                if gap > 0:
+                                    total_items_needed += gap
+        
+        # Get user verification stats
+        pending_users = verifier.get_pending_users()
+        all_users = verifier.get_all_users()
+        
+        return {
+            "mission": {
+                "title": "Our Mission",
+                "description": "Give and Get connects people in need with shelters and charities, while efficiently matching donors with organizations that need their contributions. We use smart matching algorithms to ensure resources reach those who need them most.",
+                "vision": "A community where no one goes without shelter or basic necessities, and every donation creates maximum impact."
+            },
+            "story": {
+                "title": "Our Story",
+                "content": "Give and Get was born from a simple observation: generous donors want to help, shelters and charities desperately need resources, yet connecting them efficiently remains a challenge. We built an intelligent matching system that considers urgency, location, capacity, and specific needs to create optimal matches in real-time."
+            },
+            "impact": {
+                "title": "Our Impact",
+                "metrics": {
+                    "organizations_partnered": total_organizations,
+                    "shelters": shelters_count,
+                    "charities": charities_count,
+                    "beds_available": total_beds_available,
+                    "items_needed": total_items_needed,
+                    "verified_users": len([u for u in all_users if u.trust_score >= 70]),
+                    "pending_verifications": len(pending_users)
+                },
+                "highlights": [
+                    {
+                        "number": total_organizations,
+                        "label": "Partner Organizations",
+                        "description": "Shelters and charities we work with"
+                    },
+                    {
+                        "number": total_beds_available,
+                        "label": "Beds Available",
+                        "description": "Shelter spaces ready to help families"
+                    },
+                    {
+                        "number": total_items_needed,
+                        "label": "Items Needed",
+                        "description": "Urgent needs waiting to be filled"
+                    },
+                    {
+                        "number": len(all_users),
+                        "label": "Community Members",
+                        "description": "Donors and organizations making a difference"
+                    }
+                ]
+            },
+            "how_it_works": {
+                "title": "How It Works",
+                "steps": [
+                    {
+                        "step": 1,
+                        "title": "Share Your Needs",
+                        "description": "People in need fill out a simple form with their requirements. Donors tell us what they want to give.",
+                        "icon": "📝"
+                    },
+                    {
+                        "step": 2,
+                        "title": "Smart Matching",
+                        "description": "Our intelligent algorithm finds the best matches based on location, urgency, capacity, and specific needs.",
+                        "icon": "🤖"
+                    },
+                    {
+                        "step": 3,
+                        "title": "Instant Results",
+                        "description": "Get matched with verified shelters and charities in seconds. See scores and explanations for each match.",
+                        "icon": "⚡"
+                    },
+                    {
+                        "step": 4,
+                        "title": "Make Impact",
+                        "description": "Connect directly with organizations. Track your impact and see how your contribution helps real people.",
+                        "icon": "❤️"
+                    }
+                ]
+            },
+            "values": [
+                {
+                    "title": "Transparency",
+                    "description": "Every match comes with a detailed explanation of why it was made.",
+                    "icon": "🔍"
+                },
+                {
+                    "title": "Efficiency",
+                    "description": "Smart algorithms ensure resources go where they're needed most.",
+                    "icon": "⚙️"
+                },
+                {
+                    "title": "Accessibility",
+                    "description": "Easy-to-use platform that works for everyone, regardless of technical expertise.",
+                    "icon": "🌟"
+                },
+                {
+                    "title": "Verification",
+                    "description": "All organizations are verified to ensure donations reach legitimate causes.",
+                    "icon": "✅"
+                }
+            ],
+            "team": {
+                "title": "Our Team",
+                "description": "Built by students passionate about using technology to solve real-world social challenges.",
+                "members": [
+                    {
+                        "name": "Development Team",
+                        "role": "Full-Stack Development",
+                        "description": "Built the matching algorithms and platform infrastructure"
+                    },
+                    {
+                        "name": "Community Partners",
+                        "role": "Shelter & Charity Network",
+                        "description": "Local organizations helping us understand real needs"
+                    }
+                ]
+            },
+            "contact": {
+                "title": "Get In Touch",
+                "description": "Want to partner with us or learn more about our mission?",
+                "email": "contact@giveandget.org",
+                "social": {
+                    "twitter": "@giveandget",
+                    "linkedin": "give-and-get"
+                }
+            }
+        }
+        
+    except Exception as e:
+        # Return default content if there's an error
+        return {
+            "mission": {
+                "title": "Our Mission",
+                "description": "Give and Get connects people in need with shelters and charities, while efficiently matching donors with organizations that need their contributions.",
+                "vision": "A community where no one goes without shelter or basic necessities."
+            },
+            "impact": {
+                "title": "Our Impact",
+                "metrics": {
+                    "organizations_partnered": 0,
+                    "beds_available": 0,
+                    "items_needed": 0
+                }
+            }
+        }
+
+
 @app.get("/api/health")
 def health_check():
     """Detailed health check"""
@@ -276,6 +738,7 @@ def health_check():
             "root": "/",
             "people_matching": "/api/match-people",
             "supply_matching": "/api/match-supplies",
+            "about_us": "/api/about",
             "health_check": "/api/health",
             "docs": "/docs",
             "redoc": "/redoc"
@@ -287,8 +750,26 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    print("Starting Give and Get Matching API...")
-    print("API Documentation available at: http://localhost:8000/docs")
-    print("Alternative docs at: http://localhost:8000/redoc")
+    print("🚀 Starting Give and Get API...")
+    print("="*60)
+    print("📍 API available at: http://localhost:8000")
+    print("📚 Interactive API docs: http://localhost:8000/docs")
+    print("📖 Alternative docs: http://localhost:8000/redoc")
+    print("\n" + "="*60)
+    print("Available endpoints:")
+    print("\n🏥 MATCHING ENDPOINTS:")
+    print("  POST /api/match-people       - Match people to shelters/charities")
+    print("  POST /api/match-supplies     - Match donors to organizations")
+    print("\n🏢 ORGANIZATION MANAGEMENT:")
+    print("  GET  /api/health             - Health check")
+    print("  GET  /api/about              - About us & impact metrics")
+    print("  POST /api/organizations      - Create organization")
+    print("  GET  /api/organizations      - Get all organizations")
+    print("  GET  /api/organizations/{id} - Get specific organization")
+    print("\n👥 USER VERIFICATION:")
+    print("  GET  /api/users/pending      - Get pending users")
+    print("  POST /api/users/{id}/approve - Approve user")
+    print("  POST /api/users/{id}/reject  - Reject user")
+    print("="*60 + "\n")
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
 
