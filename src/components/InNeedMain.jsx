@@ -5,7 +5,12 @@ import '../App.css';
 import GoogleMapDisplay from './GoogleMapDisplay';
 
 async function getPeopleMatches(requestData) {
-  const API_URL = `${process.env.REACT_APP_API_URL}/api/match-people`;
+  const API_URL = process.env.REACT_APP_API_URL 
+    ? `${process.env.REACT_APP_API_URL}/api/match-people`
+    : 'http://localhost:8000/api/match-people'; // Fallback to localhost
+
+  console.log("Sending request to:", API_URL);
+  console.log("Request payload:", JSON.stringify(requestData, null, 2));
 
   try {
     const response = await fetch(API_URL, {
@@ -13,9 +18,11 @@ async function getPeopleMatches(requestData) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestData)
     });
+    
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.detail || "Something went wrong");
+      console.error("API Error Response:", errorData);
+      throw new Error(JSON.stringify(errorData.detail || errorData, null, 2));
     }
     return await response.json();
   } catch (error) {
