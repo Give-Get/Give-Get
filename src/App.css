@@ -76,6 +76,28 @@ body {
   color: #000000 !important;
 }
 
+.btn-outline-secondary {
+  background-color: transparent !important;
+  border-color: #dee2e6 !important;
+  color: #6c757d !important;
+  font-weight: 600 !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #e9ecef !important;
+  border-color: #dee2e6 !important;
+  color: #495057 !important;
+}
+
+.btn-outline-secondary:focus,
+.btn-outline-secondary:focus-visible,
+.btn-outline-secondary:active {
+  background-color: #e9ecef !important;
+  border-color: #dee2e6 !important;
+  color: #495057 !important;
+  box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.15) !important;
+}
+
 /* Pressed state */
 /* .btn-primary:active,
 .btn-primary.active {
@@ -210,6 +232,9 @@ h4 {
   height: 100%;
   overflow: hidden; /* prevent overflow */
   position: relative; /* for absolute positioning of sidebar-bottom */
+  background: var(--bs-body-bg);
+  border-radius: 12px;
+  /* box-shadow: 0 2px 16px rgba(0, 0, 0, 0.25); */
 }
 
 .donation-list {
@@ -381,6 +406,7 @@ h4 {
   right: 0;
   padding: 1rem;
   background: var(--bs-body-bg);
+  border-radius: 0 0 12px 12px;
 }
 
 /* Responsive: stack and keep all content inside viewport on small screens */
@@ -545,6 +571,35 @@ h4 {
 
 .back-arrow-btn:hover {
   color: #2ee079 !important;
+}
+
+.radius-select {
+  padding: 8px 16px;
+  background-color: var(--bs-light);
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-family: var(--ff-base);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--bs-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%230f1724' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.radius-select:hover {
+  border-color: var(--bs-primary);
+  background-color: rgba(46, 224, 121, 0.05);
+}
+
+.radius-select:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(46, 224, 121, 0.15);
 }
 
 @media (max-width: 768px) {

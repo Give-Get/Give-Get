@@ -87,25 +87,37 @@ const DonorPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    const { confirmPassword, ...donorRegistration } = donorData;
+    const { confirmPassword, password, charity, shelter, donor, ...donorValidation } = donorData;
 
-    console.log('Donor Registration:', donorRegistration);
+    try {
+      console.log('🌐 Sending POST → https://give-get.onrender.com/api/user/create');
+      const response = await fetch("https://give-get.onrender.com/api/user/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userPayload)
+      });
 
-    // Here you would typically send this data to your backend
-    // fetch('/api/register-donor', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(donorRegistration)
-    // });
+      const result = await res.json();
 
-    setIsRegistered(true);
+      if (result.success) {
+        // If validation succeeds, show success message and proceed
+        console.log('Donor Validation Result:', result);
+        setIsRegistered(true);
+      } else {
+        // If validation fails, show error
+        alert('Validation failed: ' + result.message);
+      }
+    } catch (err) {
+      console.error('Validation error:', err);
+      alert('Could not connect to backend validator. Please try again later.');
+    }
   };
 
   if (isRegistered) {

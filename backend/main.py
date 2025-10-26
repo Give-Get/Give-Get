@@ -162,6 +162,22 @@ class ContactInfo(BaseModel):
     website: Optional[str] = ""
 
 
+class OrganizationValidationContact(BaseModel):
+    """Optional contact details used for lightweight validation"""
+    phone: Optional[str] = ""
+    email: Optional[str] = ""
+    website: Optional[str] = ""
+
+
+class OrganizationValidationRequest(BaseModel):
+    """Payload from the front-end validator prior to full org creation"""
+    EIN: Optional[str] = ""
+    name: Optional[str] = ""
+    address: Optional[str] = ""
+    verified: Optional[bool] = False
+    contact: OrganizationValidationContact = Field(default_factory=OrganizationValidationContact)
+
+
 class Location(BaseModel):
     lat: float
     lng: float
@@ -441,6 +457,103 @@ async def create_organization(org: OrganizationCreate):
     
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error creating organization: {str(e)}")
+
+
+@app.post("/api/org/validate")
+async def validate_organization(org: OrganizationValidationRequest):
+    """
+    Run lightweight verification checks for an organization without persisting it.
+    Used by the front-end form before full submission.
+    """
+    try:
+        verification_payload = {
+            'name': org.name or "",
+            'email': (org.contact.email or "").strip(),
+            'phone': (org.contact.phone or "").strip(),
+            'address': (org.address or "").strip(),
+            'id_uploaded': bool(org.verified),
+            'ein': (org.EIN or "").strip()
+        }
+
+        verification_result = verifier.verify_individual(verification_payload)
+        status = verification_result['status']
+        success = status != 'rejected'
+
+        if status == 'approved':
+            message = "Organization passed automated verification."
+        elif status == 'manual_review':
+            message = "Organization requires manual review."
+        else:
+            message = "Organization failed automated verification."
+
+        return {
+            "success": success,
+            "message": message,
+            "verification": {
+                "status": status,
+                "trust_score": verification_result['score'],
+                "trust_level": verification_result['trust_level'],
+                "checks": verification_result['checks']
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": str(e), "context": "organization validation"}
+        )
+
+
+class DonorValidationRequest(BaseModel):
+    """Payload from the front-end donor signup form for validation"""
+    name: str
+    email: str
+    phone_number: str
+    address: str
+
+
+@app.post("/api/donor/validate")
+async def validate_donor(donor: DonorValidationRequest):
+    """
+    Run lightweight verification checks for a donor without persisting them.
+    Used by the front-end donor signup form before full submission.
+    """
+    try:
+        verification_payload = {
+            'name': donor.name.strip(),
+            'email': donor.email.strip(),
+            'phone': donor.phone_number.strip(),
+            'address': donor.address.strip(),
+            'id_uploaded': False  # Donors don't upload ID during signup
+        }
+
+        verification_result = verifier.verify_individual(verification_payload)
+        status = verification_result['status']
+        success = status != 'rejected'
+
+        if status == 'approved':
+            message = "Donor passed automated verification."
+        elif status == 'manual_review':
+            message = "Donor requires manual review."
+        else:
+            message = "Donor failed automated verification."
+
+        return {
+            "success": success,
+            "message": message,
+            "verification": {
+                "status": status,
+                "trust_score": verification_result['score'],
+                "trust_level": verification_result['trust_level'],
+                "checks": verification_result['checks']
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": str(e), "context": "donor validation"}
+        )
 
 
 @app.get("/api/organizations")
@@ -1065,4 +1178,3 @@ if __name__ == "__main__":
     print("  POST /api/users/{id}/reject  - Reject user")
     print("="*60 + "\n")
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
-
