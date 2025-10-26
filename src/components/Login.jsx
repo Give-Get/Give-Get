@@ -33,14 +33,14 @@ export default function Login() {
                 className={`btn ${type === 'individual' ? 'btn-primary' : 'btn-outline-secondary'}`}
                 onClick={() => setType('individual')}
               >
-                Individual
+                Donor
               </button>
               <button
                 type="button"
-                className={`btn ${type === 'center' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                onClick={() => setType('center')}
+                className={`btn ${type === 'organization' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                onClick={() => setType('organization')}
               >
-                Center
+                Organization
               </button>
             </div>
 
@@ -62,10 +62,13 @@ export default function Login() {
                 <a className="text-muted small" href="#forgot">Forgot?</a>
               </div>
             </form>
+            <div className="text-center mt-3 small text-muted">
+                      Don't have an account? <a href="#signup" className="text-decoration-none">Sign up</a>
+            </div>
           </div>
 
           <div className="card-footer text-center small text-muted">
-            Signing in as <strong>{type === 'individual' ? 'Individual' : 'Center'}</strong>
+            Signing in as <strong>{type === 'individual' ? 'Individual' : 'Organization'}</strong>
           </div>
         </div>
       </main>

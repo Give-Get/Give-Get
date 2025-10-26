@@ -352,8 +352,6 @@ h4 {
   width: 100%;
   max-width: 1200px;
   margin-left: auto;
-  border-radius: 20px;
-  border-color: #ffffff;
   overflow: hidden;
 }
 
@@ -486,4 +484,71 @@ h4 {
 
 .remove-button:hover {
   color: #2ee079;
+}
+
+/* Selected location detail strip styles */
+.selected-location {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  height: 100%;
+}
+
+.selected-location-img {
+  /* Match the aspect ratio of .location-item (245x145) but slightly larger */
+  height: 100%;
+  max-height: 190px; /* prevent it from getting too tall */
+  aspect-ratio: 245 / 145;
+  width: auto;            /* compute width from aspect-ratio */
+  flex: 0 0 auto;         /* don't stretch */
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.selected-location-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* allow text to wrap within container */
+}
+
+.need-chip {
+  display: inline-block;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #0f1724;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  margin-right: 8px;
+}
+
+.selected-location-contact a {
+  text-decoration: none;
+}
+
+.contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--bs-body-color);
+}
+
+.contact-icon {
+  color: #2ee079;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.back-arrow-btn {
+  transition: color 0.2s;
+}
+
+.back-arrow-btn:hover {
+  color: #2ee079 !important;
+}
+
+@media (max-width: 768px) {
+  .selected-location-img {
+    height: 150px; /* keep proportionate but a touch smaller on narrow screens */
+  }
 }

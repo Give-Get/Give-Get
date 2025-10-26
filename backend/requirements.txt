@@ -2,6 +2,7 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 gunicorn==23.0.0
+<<<<<<< HEAD:src/requirements.txt
 pydantic==2.5.0
 
 # Database
@@ -14,3 +15,9 @@ requests==2.31.0
 # Optional but recommended for development
 python-multipart==0.0.6  # For form data handling
 python-dotenv==1.0.0     # For environment variables
+=======
+pydantic==2.7.1
+requests==2.31.0
+pymongo==4.15.3
+geopy==2.4.1
+>>>>>>> 1b95c8e19032d277ab340e13359cbb0dbfb96b77:backend/requirements.txt
