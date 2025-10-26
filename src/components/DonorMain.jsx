@@ -41,9 +41,9 @@ export default function Main() {
   const [donations, setDonations] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
 
-  const [radius, setRadius] = useState(1); // Default to 1 mile to match your <h4>
-  const [locations, setLocations] = useState(null); // This will hold the API results
-  const [loading, setLoading] = useState(true);
+  const [radius, setRadius] = useState(1);
+  const [locations, setLocations] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   function handleLogout() {
@@ -93,7 +93,7 @@ export default function Main() {
     const fetchMatches = async () => {
       setLoading(true);
       setError(null);
-      
+     
       // Format the 'donations' state to match the API's 'donor_items' schema
       const donorItemsPayload = (donations && donations.length > 0)
         ? { items: donations.map(d => ({
@@ -202,7 +202,8 @@ export default function Main() {
               userLocation={userLocation}
               selectedLocationId={selectedLocationId}
               onMarkerClick={handleSelectLocation}
-              onInfoClose={handleClearRoute}/>
+              onInfoClose={handleClearRoute}
+              />
             </div>
           </div>
         </div>

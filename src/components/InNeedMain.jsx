@@ -7,22 +7,12 @@ import GoogleMapDisplay from './GoogleMapDisplay';
 
 async function getPeopleMatches(requestData) {
   const API_URL = `${process.env.REACT_APP_API_URL}/api/match-people`;
-
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestData)
-    });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Something went wrong");
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Failed to fetch matches:", error);
-    throw error;
-  }
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestData)
+  });
+  return await response.json();
 }
 
 export default function InNeedMain() {
@@ -40,8 +30,8 @@ export default function InNeedMain() {
     beds_needed: 1,
     needs_handicapped_access: false,
     owns_pets: false,
-    days_homeless: '',
     preferred_duration_days: 30,
+    days_homeless: null,
     prefers_family_rooming: false,
     can_pay_fees: false,
     max_affordable_fee: 0,
@@ -56,10 +46,11 @@ export default function InNeedMain() {
     gender: 'other',
     age: 25,
     language: 'english',
-    immigration_status: '',
+    immigration_status: null,
     veteran_status: 'no',
     criminal_record: 'no',
     sobriety: 'no',
+    has_id: true,
     needs_food: false,
     needs_clothing: false,
     needs_medical: false,
@@ -84,43 +75,43 @@ export default function InNeedMain() {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
-        },
-        (error) => {
-          console.error("Error getting user location:", error);
         }
       );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
     }
   }, []);
 
-  useEffect(() => {
-    if (!userLocation) return;
+  const fetchMatches = async () => {
+    if (!userLocation) {
+      return;
+    }
 
-    const fetchMatches = async () => {
-      const personFiltersPayload = {
-        ...formData,
-        location: userLocation,
-        max_travel_distance_miles: radius
-      };
-
-      // Remove empty optional fields
-      if (!personFiltersPayload.days_homeless) delete personFiltersPayload.days_homeless;
-      if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
-
-      try {
-        const results = await getPeopleMatches({
-          person_filters: personFiltersPayload
-        });
-        setLocations(results);
-      } catch (err) {
-        console.error("Error fetching matches:", err);
-        setLocations(null);
-      }
+    // Create a copy of formData for person_filters
+    const personFiltersPayload = {
+      ...formData,
+      max_travel_distance_miles: radius
     };
 
-    fetchMatches();
-  }, [userLocation, radius, formData]);
+    // Remove empty optional fields
+    if (!personFiltersPayload.days_homeless) delete personFiltersPayload.days_homeless;
+    if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
+
+    const requestPayload = {
+      location: userLocation,
+      radius: radius,
+      person_filters: personFiltersPayload
+    };
+
+    try {
+      const results = await getPeopleMatches(requestPayload);
+      console.log("✅ SUCCESS - Matches received!");
+      console.log("Number of organizations matched:", Object.keys(results.ranked_organizations || {}).length);
+      console.log("Results:", results);
+      setLocations(results.ranked_organizations);
+      } catch (err) {
+      console.error("❌ ERROR fetching matches:", err);
+      setLocations(null);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -131,13 +122,13 @@ export default function InNeedMain() {
   };
 
   const selectedLocation =
-    selectedLocationId && locations
-      ? locations[selectedLocationId]
-      : null;
+  selectedLocationId && locations
+    ? locations[selectedLocationId]
+    : null;
 
   return (
     <div className="main-container">
-      <aside className="sidebar">
+<aside className="sidebar">
         <div className="sidebar-top" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h4 className="mb-3">What are you looking for?</h4>
           
@@ -360,29 +351,49 @@ export default function InNeedMain() {
               </>
             )}
 
-            <h6 className="section-header">Personal Information</h6>
+            <hr className="my-3" />
+            <h6 className="fw-bold mb-2 section-header">Personal Information</h6>
 
-            <div className="personal-info-row">
-              <div className="form-section">
-                <label className="form-label">Age</label>
-                <input
-                  type="number"
-                  className="form-control form-control-sm"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleInputChange}
-                  min="18"
-                  max="100"
-                />
-              </div>
-              <div className="form-section">
-                <label className="form-label">Urgency</label>
-                <select className="form-select form-select-sm" name="urgency_level" value={formData.urgency_level} onChange={handleInputChange}>
-                  <option value="immediate">Immediate</option>
-                  <option value="within_week">Within a Week</option>
-                  <option value="within_month">Within a Month</option>
-                </select>
-              </div>
+            <div className="form-section mb-3 personal-info-row">
+              <label className="form-label">Urgency</label>
+              <select className="form-select form-select-sm" name="urgency_level" value={formData.urgency_level} onChange={handleInputChange}>
+                <option value="immediate">Immediate</option>
+                <option value="within_week">Within a Week</option>
+                <option value="within_month">Within a Month</option>
+              </select>
+            </div>
+
+            <div className="form-section mb-3">
+              <label className="form-label">Gender</label>
+              <select className="form-select form-select-sm" name="gender" value={formData.gender} onChange={handleInputChange}>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other/Prefer not to say</option>
+              </select>
+            </div>
+
+            <div className="form-section mb-3">
+              <label className="form-label">Age</label>
+              <input
+                type="number"
+                className="form-control form-control-sm"
+                name="age"
+                value={formData.age}
+                onChange={handleInputChange}
+                min="18"
+                max="100"
+              />
+            </div>
+
+            <div className="form-check mb-2">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                name="lgbtq_identity"
+                checked={formData.lgbtq_identity}
+                onChange={handleInputChange}
+              />
+              <label className="form-check-label">LGBTQ+ Identity</label>
             </div>
 
             <div className="personal-info-row">
@@ -438,50 +449,37 @@ export default function InNeedMain() {
               </div>
             </div>
 
-            <div className="input-row-full">
-              <div className="form-section">
-                <label className="form-label">Currently Sober?</label>
-                <select className="form-select form-select-sm" name="sobriety" value={formData.sobriety} onChange={handleInputChange}>
-                  <option value="no">No</option>
-                  <option value="yes">Yes</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="input-row-full">
-              <div className="form-section">
-                <label className="form-label">Immigration</label>
-                <select className="form-select form-select-sm" name="immigration_status" value={formData.immigration_status} onChange={handleInputChange}>
-                  <option value="">N/A</option>
-                  <option value="citizen">Citizen</option>
-                  <option value="permanent_resident">Permanent</option>
-                  <option value="temporary_resident">Temporary</option>
-                  <option value="refugee">Refugee</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
+            <div className="form-section mb-3">
+              <label className="form-label">Currently Sober?</label>
+              <select className="form-select form-select-sm" name="sobriety" value={formData.sobriety} onChange={handleInputChange}>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
             </div>
           </div>
 
-          <div className="filter-button-container">
-            <button className="btn btn-primary add-item-button">
-              Update Matches
+          <div style={{ padding: '0 1rem', paddingBottom: '1rem' }}>
+            <button
+              className="btn btn-primary add-item-button"
+              style={{ width: '100%', padding: '1rem' }}
+            >
+              Filter
             </button>
           </div>
         </div>
       </aside>
 
       <main className="main-content">
-        <div className="main-content-wrapper">
-          <div className="map-wrapper">
-            <div className="map-container">
+      <div className="content-column">
+          <div className="media-wrap">
+            <div className="media-map">
               <GoogleMapDisplay
-                routeToId={routeToId}
-                locations={locations}
-                userLocation={userLocation}
-                selectedLocationId={selectedLocationId}
-                onMarkerClick={handleSelectLocation}
-                onInfoClose={handleClearRoute}
+              routeToId={routeToId}
+              locations={locations}
+              userLocation={userLocation}
+              selectedLocationId={selectedLocationId}
+              onMarkerClick={handleSelectLocation}
+              onInfoClose={handleClearRoute}
               />
             </div>
           </div>
