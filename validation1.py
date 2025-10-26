@@ -121,7 +121,6 @@ class VerificationService:
         if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
             return False
         
-        # Check disposable emails
         disposable = ['tempmail.com', 'guerrillamail.com', 'throwaway.email']
         domain = email.split('@')[1]
         return domain not in disposable
@@ -133,7 +132,6 @@ class VerificationService:
     
     def check_fraud(self, email: str) -> bool:
         """Check if email is flagged"""
-        # In real system, check database
         return False
     
     def calculate_trust_level(self, score: int) -> str:
@@ -194,7 +192,6 @@ class VerificationService:
         orgs = load_json(f"{base_path}/organizations.json")
 
         if not users and not orgs:
-            # Inject test data for public-domain EIN orgs and user examples
             test_orgs = {
                 "charity_water": {
                     "EIN": "67",
@@ -231,7 +228,6 @@ class VerificationService:
                     "address": ""
                 }
             }
-            # Create org users
             for uid, org_data in test_orgs.items():
                 org = Organization(
                     ein=str(org_data.get("EIN", "")),
@@ -249,7 +245,6 @@ class VerificationService:
                     'id_uploaded': org_data.get("verified", False),
                     'ein': org.ein
                 })
-            # Create donor, shelter, charity, or fallback users
             for uid, data in test_users.items():
                 if data.get("donor"):
                     self.create_user({
@@ -333,7 +328,7 @@ class VerificationService:
 #file names tbd
 
 
-# Admin Dashboard (CLI)
+#Admin Dashboard (CLI)
 class AdminDashboard:
     def __init__(self, verification_service: VerificationService):
         self.service = verification_service
@@ -452,15 +447,14 @@ class AdminDashboard:
                 print("Goodbye!")
                 break
 
-# Demo Script
+
 if __name__ == '__main__':
-    # Create service
     verifier = VerificationService()
     
-    # Automatically loaded from JSON files during VerificationService initialization
+
     print("Users loaded from users.json and organizations.json\n")
     
-    # Print loaded users with trust score and level
+    
     for user in verifier.get_all_users():
         print(f"User ID: {user.id}")
         print(f"Name: {user.full_name}")
@@ -470,7 +464,7 @@ if __name__ == '__main__':
         print(f"Trust Level: {user.trust_level}")
         print("-" * 40)
     
-    # Start admin dashboard
+
     print("\n" + "="*50)
     input("Press Enter to open Admin Dashboard...")
     
