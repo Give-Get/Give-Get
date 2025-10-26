@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import "./OrganizationsPage.css";
 
-/* ===============================================================
-   🧱 Base Template (matches backend JSON schema)
-================================================================*/
 const BASE_ORG_TEMPLATE = {
   image_address_url: "",
   type: { shelter: false, charity: false },
@@ -47,30 +44,21 @@ const BASE_ORG_TEMPLATE = {
   contact: { phone: "", email: "", website: "" },
 };
 
-/* ===============================================================
-   🎛️ Dropdown options for Hours of Operation
-================================================================*/
 const HOUR_OPTIONS = [
   { label: "Closed", value: "closed" },
-  { label: "24 Hours", value: "0000-2359" },
-  { label: "8 AM - 5 PM", value: "0800-1700" },
-  { label: "9 AM - 6 PM", value: "0900-1800" },
-  { label: "10 AM - 7 PM", value: "1000-1900" },
+  { label: "24 Hours (0000-2359)", value: "0000-2359" },
+  { label: "8 AM - 5 PM (0800-1700)", value: "0800-1700" },
+  { label: "9 AM - 6 PM (0900-1800)", value: "0900-1800" },
+  { label: "10 AM - 7 PM (1000-1900)", value: "1000-1900" },
   { label: "Custom", value: "custom" },
 ];
 
-/* ===============================================================
-   🧩 Component
-================================================================*/
 function OrganizationsPage() {
   const [org, setOrg] = useState(BASE_ORG_TEMPLATE);
-  const [submitted, setSubmitted] = useState([]);
   const [needsList, setNeedsList] = useState([]);
   const [customHours, setCustomHours] = useState({});
+  const [submitted, setSubmitted] = useState([]);
 
-  /* ---------------------------------------------------------------
-   🔄 Handle Input Changes (generic + nested fields)
-  ----------------------------------------------------------------*/
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const val = type === "checkbox" ? checked : value;
@@ -86,9 +74,6 @@ function OrganizationsPage() {
     }
   };
 
-  /* ---------------------------------------------------------------
-   🕐 Handle Dropdown for Hours
-  ----------------------------------------------------------------*/
   const handleHoursChange = (day, value) => {
     if (value === "custom") {
       const custom = prompt(`Enter custom hours for ${day} (e.g. 0900-1700):`);
@@ -101,26 +86,23 @@ function OrganizationsPage() {
     }
   };
 
-  /* ---------------------------------------------------------------
-   📦 Needs Management
-  ----------------------------------------------------------------*/
   const addNeed = () => {
-    setNeedsList([...needsList, { item: "", category: "", needed: 0, have: 0, urgency: "medium" }]);
+    setNeedsList([
+      ...needsList,
+      { item: "", category: "", needed: 0, have: 0, urgency: "medium" },
+    ]);
   };
 
   const updateNeed = (index, field, value) => {
-    const newNeeds = [...needsList];
-    newNeeds[index][field] = value;
-    setNeedsList(newNeeds);
+    const updated = [...needsList];
+    updated[index][field] = value;
+    setNeedsList(updated);
   };
 
   const removeNeed = (index) => {
     setNeedsList(needsList.filter((_, i) => i !== index));
   };
 
-  /* ---------------------------------------------------------------
-   🚀 Submit to /api/org/validate
-  ----------------------------------------------------------------*/
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -129,14 +111,12 @@ function OrganizationsPage() {
       return;
     }
 
-    // Convert languages to array
     if (typeof org.ammenities.languages === "string") {
       org.ammenities.languages = org.ammenities.languages
         .split(",")
-        .map((lang) => lang.trim());
+        .map((l) => l.trim());
     }
 
-    // Convert needs list to JSON object
     const needsObj = {};
     needsList.forEach((n) => {
       if (n.item)
@@ -156,7 +136,6 @@ function OrganizationsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const result = await res.json();
       if (result.success) {
         alert(`✅ Validated & Created: ID ${result.organization_id}`);
@@ -172,17 +151,13 @@ function OrganizationsPage() {
     }
   };
 
-  /* ---------------------------------------------------------------
-   🧾 UI
-  ----------------------------------------------------------------*/
   return (
     <div className="organizations-page">
       <h1>Organization Registration</h1>
-      <p className="subtitle">Complete all required fields below</p>
+      <p className="subtitle">Fill out all required fields to register your organization</p>
 
       <form onSubmit={handleSubmit} className="org-form">
-
-        {/* ---------- TYPE ---------- */}
+        {/* --- Organization Type --- */}
         <fieldset>
           <legend>Organization Type *</legend>
           <label>
@@ -192,7 +167,8 @@ function OrganizationsPage() {
               onChange={(e) =>
                 setOrg({ ...org, type: { ...org.type, shelter: e.target.checked } })
               }
-            /> Shelter
+            />
+            Shelter
           </label>
           <label>
             <input
@@ -201,36 +177,59 @@ function OrganizationsPage() {
               onChange={(e) =>
                 setOrg({ ...org, type: { ...org.type, charity: e.target.checked } })
               }
-            /> Charity
+            />
+            Charity
           </label>
         </fieldset>
 
-        {/* ---------- BASIC INFO ---------- */}
+        {/* --- Basic Info --- */}
         <fieldset>
           <legend>Basic Information</legend>
-          <input name="EIN" placeholder="EIN" value={org.EIN} onChange={handleChange} />
-          <input name="name" placeholder="Organization Name" value={org.name} onChange={handleChange} />
-          <input name="address" placeholder="Full Address" value={org.address} onChange={handleChange} />
-          <input name="image_address_url" placeholder="Image URL" value={org.image_address_url} onChange={handleChange} />
-          <textarea name="description" placeholder="Description" value={org.description} onChange={handleChange} />
+          <label>
+            EIN:
+            <input name="EIN" value={org.EIN} onChange={handleChange} />
+          </label>
+          <label>
+            Organization Name:
+            <input name="name" value={org.name} onChange={handleChange} />
+          </label>
+          <label>
+            Full Address:
+            <input name="address" value={org.address} onChange={handleChange} />
+          </label>
+          <label>
+            Image URL:
+            <input name="image_address_url" value={org.image_address_url} onChange={handleChange} />
+          </label>
+          <label>
+            Description:
+            <textarea name="description" value={org.description} onChange={handleChange} />
+          </label>
         </fieldset>
 
-        {/* ---------- CONTACT ---------- */}
+        {/* --- Contact Info --- */}
         <fieldset>
           <legend>Contact Information</legend>
-          <input name="phone" placeholder="Phone" value={org.contact.phone} onChange={handleChange} />
-          <input name="email" placeholder="Email" value={org.contact.email} onChange={handleChange} />
-          <input name="website" placeholder="Website" value={org.contact.website} onChange={handleChange} />
+          <label>
+            Phone Number:
+            <input name="phone" value={org.contact.phone} onChange={handleChange} />
+          </label>
+          <label>
+            Email:
+            <input name="email" value={org.contact.email} onChange={handleChange} />
+          </label>
+          <label>
+            Website:
+            <input name="website" value={org.contact.website} onChange={handleChange} />
+          </label>
         </fieldset>
 
-        {/* ---------- HOURS ---------- */}
+        {/* --- Hours --- */}
         <fieldset>
-          <legend>Hours of Operation</legend>
+          <legend>Hours of Operation (0000-2359)</legend>
           {Object.keys(org.hours).map((day) => (
-            <div key={day} className="hour-row">
-              <label className="hour-label">
-                {day.charAt(0).toUpperCase() + day.slice(1)}:
-              </label>
+            <label key={day}>
+              {day.charAt(0).toUpperCase() + day.slice(1)} Hours:
               <select
                 value={customHours[day] || org.hours[day]}
                 onChange={(e) => handleHoursChange(day, e.target.value)}
@@ -241,78 +240,92 @@ function OrganizationsPage() {
                   </option>
                 ))}
               </select>
+            </label>
+          ))}
+        </fieldset>
+
+        {/* --- Amenities --- */}
+        <fieldset>
+          <legend>Amenities</legend>
+
+          {Object.entries(org.ammenities).map(([key, val]) => (
+            <div key={key}>
+              {typeof val === "boolean" ? (
+                <label>
+                  <input
+                    type="checkbox"
+                    name={key}
+                    checked={val}
+                    onChange={handleChange}
+                  />
+                  {key.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </label>
+              ) : (
+                <label>
+                  {key.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}:
+                  <input
+                    type={typeof val === "number" ? "number" : "text"}
+                    name={key}
+                    value={val}
+                    onChange={handleChange}
+                  />
+                </label>
+              )}
             </div>
           ))}
         </fieldset>
 
-        {/* ---------- AMMENITIES ---------- */}
-        <fieldset>
-          <legend>Amenities</legend>
-          <div className="checkbox-grid">
-            {Object.entries(org.ammenities).map(([key, val]) => (
-              <label key={key}>
-                {typeof val === "boolean" ? (
-                  <>
-                    <input
-                      type="checkbox"
-                      name={key}
-                      checked={val}
-                      onChange={handleChange}
-                    />{" "}
-                    {key.replaceAll("_", " ")}
-                  </>
-                ) : (
-                  <input
-                    type="text"
-                    name={key}
-                    value={val}
-                    onChange={handleChange}
-                    placeholder={key}
-                  />
-                )}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        {/* ---------- NEEDS ---------- */}
+        {/* --- Needs --- */}
         <fieldset>
           <legend>Needs</legend>
-          {needsList.map((need, index) => (
-            <div key={index} className="need-row">
-              <input
-                type="text"
-                placeholder="Item Name"
-                value={need.item}
-                onChange={(e) => updateNeed(index, "item", e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Category"
-                value={need.category}
-                onChange={(e) => updateNeed(index, "category", e.target.value)}
-              />
-              <input
-                type="number"
-                placeholder="Needed"
-                value={need.needed}
-                onChange={(e) => updateNeed(index, "needed", e.target.value)}
-              />
-              <input
-                type="number"
-                placeholder="Have"
-                value={need.have}
-                onChange={(e) => updateNeed(index, "have", e.target.value)}
-              />
-              <select
-                value={need.urgency}
-                onChange={(e) => updateNeed(index, "urgency", e.target.value)}
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-              <button type="button" onClick={() => removeNeed(index)}>Remove</button>
+          {needsList.map((need, i) => (
+            <div key={i}>
+              <label>
+                Item Name:
+                <input
+                  type="text"
+                  value={need.item}
+                  onChange={(e) => updateNeed(i, "item", e.target.value)}
+                />
+              </label>
+              <label>
+                Category:
+                <input
+                  type="text"
+                  value={need.category}
+                  onChange={(e) => updateNeed(i, "category", e.target.value)}
+                />
+              </label>
+              <label>
+                Needed:
+                <input
+                  type="number"
+                  value={need.needed}
+                  onChange={(e) => updateNeed(i, "needed", e.target.value)}
+                />
+              </label>
+              <label>
+                Have:
+                <input
+                  type="number"
+                  value={need.have}
+                  onChange={(e) => updateNeed(i, "have", e.target.value)}
+                />
+              </label>
+              <label>
+                Urgency:
+                <select
+                  value={need.urgency}
+                  onChange={(e) => updateNeed(i, "urgency", e.target.value)}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+              <button type="button" onClick={() => removeNeed(i)}>
+                Remove
+              </button>
             </div>
           ))}
           <button type="button" onClick={addNeed}>
@@ -325,7 +338,6 @@ function OrganizationsPage() {
         </button>
       </form>
 
-      {/* ---------- SUBMITTED ---------- */}
       <div className="organizations-list">
         <h2>Submitted Organizations ({submitted.length})</h2>
         {submitted.map((o, i) => (
