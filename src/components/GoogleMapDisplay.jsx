@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import '../App.css';
 
 const GoogleMapDisplay = () => {
   const API_KEY = process.env.REACT_APP_GOOGLE_MAP_API_KEY;

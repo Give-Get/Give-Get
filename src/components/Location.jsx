@@ -1,15 +1,27 @@
+import React from 'react';
 import '../App.css';
 
-function Location() {
+function Location(props) {
+  const {
+    name = 'Location Name',
+    score = '',
+    image = '/assets/imgs/img1.png', // default to an existing image in public/assets/imgs
+  } = props || {};
+
+  const bg = image ? `url(${image})` : 'none';
+
   return (
-    <div className="location-item location-card card mb-3">
-      <div className="card-body">
-        <h5 className="card-title">Location Name</h5>
-        <p className="card-text">1234 Donation St.<br />City, State, ZIP</p>
-        <p className="card-text"><small className="text-muted">Distance: 2.5 miles</small></p>
-      </div>
+    <div
+      className="location-item location-card card mb-3 clickable"
+      role="button"
+      tabIndex={0}
+      style={{ backgroundImage: bg }}
+    >
+      <div className="location-badge">{props.score}</div>
+      <div className="location-gradient" />
+      <div className="location-name">{props.name}</div>
     </div>
   );
 }
 
-export default Location; 
+export default Location;
