@@ -470,7 +470,21 @@ export default function InNeedMain() {
       </aside>
 
       <main className="main-content">
-        <div className="content-column">
+        <img
+          src="/assets/home.svg"
+          alt="Home"
+          onClick={() => navigate('/')}
+          style={{
+            position: 'absolute',
+            bottom: '20px',
+            left: '20px',
+            zIndex: 1000,
+            width: '24px',
+            height: '24px',
+            cursor: 'pointer',
+          }}
+        />
+      <div className="content-column">
           <div className="media-wrap">
             <div className="media-map">
               <GoogleMapDisplay
