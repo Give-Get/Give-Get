@@ -161,12 +161,11 @@ export default function Main() {
 
   return (
     <div className="main-container">
-      <aside className="sidebar">
+<aside className="sidebar">
         <div className="sidebar-top">
           <h4 className="mb-3">What items are you donating?</h4>
-          {showAddForm ? (
-            <AddItemForm onAdd={addDonation} />
-          ) : (
+          {/* This button now only shows when the form is hidden */}
+          {!showAddForm && (
             <button
               className="btn btn-primary add-item-button"
               onClick={() => setShowAddForm(true)}
@@ -176,9 +175,17 @@ export default function Main() {
           )}
         </div>
 
-        {!showAddForm && (
-          <div className="donation-list mx-4">
-            {donations.map(donation => (
+        {/* This 'donation-list' div is now permanent.
+          Its 'flex: 1' style (from App.css) will always fill the empty space.
+          We just change what's rendered INSIDE it.
+        */}
+        <div className="donation-list mx-4">
+          {showAddForm ? (
+            // Render the form INSIDE this div
+            <AddItemForm onAdd={addDonation} />
+          ) : (
+            // Render the list INSIDE this div
+            donations.map(donation => (
               <Donation 
                 key={donation.id}
                 itemName={donation.itemName}
@@ -187,9 +194,9 @@ export default function Main() {
                 category={donation.category}
                 description={donation.description}
               />
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
 
         <div className="sidebar-bottom mt-auto">
           <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>Logout</button>
@@ -200,9 +207,11 @@ export default function Main() {
         <div className="content-column">
           <div className="media-wrap">
             <div className="media-map">
-              <GoogleMapDisplay routeToId={routeToId}
+              <GoogleMapDisplay
+              routeToId={routeToId}
               locations={locations}
               userLocation={userLocation}
+              selectedLocationId={selectedLocationId}
               onMarkerClick={handleSelectLocation}
               onInfoClose={handleClearRoute}/>
             </div>
@@ -212,22 +221,20 @@ export default function Main() {
             <div className="card-body">
               <h4 className="mb-2">Top Matches within 1 mi</h4>
               <div className="location-list pt-2">
-                <Location 
-                    name="Location 1"
-                    score={"96%"}
+                {locations && Object.keys(locations).map(locationId => {
+                  const location = locations[locationId];
+                  
+                  return (
+                    <Location 
+                      key={locationId}
+                      name={location.name}
+                      score={"??%"} 
+                      image={'/assets/imgs/img1.png'}
+                      ID = {locationId}
+                      onSelect={handleSelectLocation}
                     />
-                <Location 
-                    name="Location 2"
-                    score={"85%"}/>
-                <Location 
-                    name="Location 3"
-                    score={"91%"}/>
-                <Location 
-                    name="Location 4"
-                    score={"89%"}/>
-                <Location 
-                    name="Location 5"
-                    score={"82%"}/>
+                  );
+                })}
               </div>
             </div>
           </div>
