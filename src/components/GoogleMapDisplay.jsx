@@ -83,18 +83,22 @@ const GoogleMapDisplay = ({ selectedLocationId, routeToId, locations, userLocati
             });
 
             // --- Modification: Simplified InfoWindow content ---
+            const hoursSection = data.hours ? `
+                    <hr style="border: 0; border-top: 2px solid #000000;">
+                    <h6 style="margin: 0 0 10px;">Hours:</h6>
+                    <p style="margin: 5px 0;">Monday: ${data.hours.monday || 'N/A'}<br>Tuesday: ${data.hours.tuesday || 'N/A'}<br>Wednesday: ${data.hours.wednesday || 'N/A'}<br>Thursday: ${data.hours.thursday || 'N/A'}<br>Friday: ${data.hours.friday || 'N/A'}<br>Saturday: ${data.hours.saturday || 'N/A'}<br>Sunday: ${data.hours.sunday || 'N/A'}<br></p>
+            ` : '';
+            
             const infoWindowContent = `
                 <div style="font-family: Arial, sans-serif; max-width: 250px;">
                     <h3 style="margin: 0 0 10px;">${data.name}</h3>
                     <hr style="border: 0; border-top: 2px solid #000000;">
                     <h6 style="margin: 0 0 10px;">Address:</h6>
-                    <p style="margin: 5px 0;">${data.address}</p>
-                    <hr style="border: 0; border-top: 2px solid #000000;">
-                    <h6 style="margin: 0 0 10px;">Hours:</h6>
-                    <p style="margin: 5px 0;">Monday: ${data.hours.monday}<br>Tuesday: ${data.hours.tuesday}<br>Wednesdday: ${data.hours.wednesday}<br>Thursday: ${data.hours.thursday}<br>Friday:${data.hours.friday}<br>Saturday:${data.hours.saturday}<br>Sunday:${data.hours.sunday}<br></p>
+                    <p style="margin: 5px 0;">${data.address || 'Address not available'}</p>
+                    ${hoursSection}
                     <hr style="border: 0; border-top: 2px solid #000000;">
                     <h6 style="margin: 0 0 10px;">Description:</h6>
-                    <p style="margin: 5px 0;">${data.description}</p>
+                    <p style="margin: 5px 0;">${data.description || 'No description available'}</p>
                 </div>
             `;
             const infoWindow = new google.maps.InfoWindow({ content: infoWindowContent });
