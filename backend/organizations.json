@@ -54,6 +54,7 @@
   },
   {
     "_id": "1",
+    "image_url": "",
     "type": {"shelter": false, "charity": true},
     "EIN": "0",
     "name": "Centre County Food Bank",
