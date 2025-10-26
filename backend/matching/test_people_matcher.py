@@ -251,7 +251,7 @@ person_charity_needs = {
     "max_travel_distance_miles": 25,
     "gender": "female",
     "age": 28,
-    "language": "spanish"  # Language doesn't matter for charities (resource pickup)
+    "language": "spanish"
 }
 
 
@@ -368,16 +368,25 @@ def test_full_pipeline_housing():
     print("\n1. Person with pets, needs accessibility, prefers family rooming:")
     results = sort_shelters_by_score(TEST_LOCATION, 25, person_housing_good_fit)
     print(f"   Matches found: {len(results)}")
+    print(f"\n   Ranked Dictionary Output:")
+    import json
+    print(f"   {json.dumps({k: {'name': v.get('name', 'Unknown'), 'score': v.get('score', 0)} for k, v in results.items()}, indent=6)}")
+    print(f"\n   Details:")
     for rank, org_data in results.items():
         org_name = org_data.get("name", "Unknown")
-        print(f"   Rank {rank}: {org_name}")
+        org_score = org_data.get("score", "N/A")
+        print(f"      Rank {rank}: {org_name} (Score: {org_score}/100)")
     
     print("\n2. Veteran with sobriety looking for shelter:")
     results = sort_shelters_by_score(TEST_LOCATION, 25, person_veteran)
     print(f"   Matches found: {len(results)}")
+    print(f"\n   Ranked Dictionary Output:")
+    print(f"   {json.dumps({k: {'name': v.get('name', 'Unknown'), 'score': v.get('score', 0)} for k, v in results.items()}, indent=6)}")
+    print(f"\n   Details:")
     for rank, org_data in results.items():
         org_name = org_data.get("name", "Unknown")
-        print(f"   Rank {rank}: {org_name}")
+        org_score = org_data.get("score", "N/A")
+        print(f"      Rank {rank}: {org_name} (Score: {org_score}/100)")
 
 
 def test_full_pipeline_charity():
@@ -389,9 +398,17 @@ def test_full_pipeline_charity():
     print("\n1. Person needing food and clothing:")
     results = sort_shelters_by_score(TEST_LOCATION, 25, person_charity_needs)
     print(f"   Matches found: {len(results)}")
-    for rank, org_data in results.items():
-        org_name = org_data.get("name", "Unknown")
-        print(f"   Rank {rank}: {org_name}")
+    if len(results) > 0:
+        print(f"\n   Ranked Dictionary Output:")
+        import json
+        print(f"   {json.dumps({k: {'name': v.get('name', 'Unknown'), 'score': v.get('score', 0)} for k, v in results.items()}, indent=6)}")
+        print(f"\n   Details:")
+        for rank, org_data in results.items():
+            org_name = org_data.get("name", "Unknown")
+            org_score = org_data.get("score", "N/A")
+            print(f"      Rank {rank}: {org_name} (Score: {org_score}/100)")
+    else:
+        print(f"   No matches found (check constraints)")
 
 
 def test_no_filters():
@@ -403,12 +420,16 @@ def test_no_filters():
     print("\n1. Getting all organizations sorted by distance:")
     results = sort_shelters_by_score(TEST_LOCATION, 25, person_filters=None)
     print(f"   Organizations found: {len(results)}")
-    print(f"   Results are sorted by distance (closest first):")
+    print(f"\n   Ranked Dictionary Output:")
+    import json
+    print(f"   {json.dumps({k: {'name': v.get('name', 'Unknown'), 'score': v.get('score', 0)} for k, v in results.items()}, indent=6)}")
+    print(f"\n   Details (sorted by distance - closest first, all get score of 100):")
     for rank, org_data in results.items():
         org_name = org_data.get("name", "Unknown")
         org_type = org_data.get("type", {})
         type_str = "Shelter" if org_type.get("shelter") else "Charity"
-        print(f"   Rank {rank}: {org_name} ({type_str})")
+        score = org_data.get("score", "N/A")
+        print(f"      Rank {rank}: {org_name} ({type_str}) - Score: {score}/100")
 
 
 # ==================== RUN ALL TESTS ====================
