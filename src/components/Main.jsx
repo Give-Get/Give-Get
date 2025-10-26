@@ -181,16 +181,8 @@ export default function Main() {
           </div>
         </div>
 
-        {/* This 'donation-list' div is now permanent.
-          Its 'flex: 1' style (from App.css) will always fill the empty space.
-          We just change what's rendered INSIDE it.
-        */}
         <div className="donation-list mx-4">
-          {showAddForm ? (
-            // Render the form INSIDE this div
-            <AddItemForm onAdd={addDonation} />
-          ) : (
-            // Render the list INSIDE this div
+          {!showAddForm && (
             donations.map(donation => (
               <Donation 
                 key={donation.id}
