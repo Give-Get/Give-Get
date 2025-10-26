@@ -1,13 +1,21 @@
+// ...existing code...
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Login';
 import Main from './Main';
+
+/** Simple auth guard using localStorage flag 'auth' (replace with real auth) */
+function RequireAuth({ children }) {
+  const isAuth = !!localStorage.getItem('auth');
+  return isAuth ? children : <Navigate to="/login" replace />;
+}
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
-      <Route path="/main" element={<Main />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<RequireAuth><Main /></RequireAuth>} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
