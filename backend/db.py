@@ -18,7 +18,6 @@ orgs = db.organizations
 app_stats = db.app_statistics 
 
 
-
 '''---------------- DATABASE UTILITY FUNCTIONS ---------------'''
 
 def update_database(id:str, new_json:dict, type:str):
