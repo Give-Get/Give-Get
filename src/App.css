@@ -438,3 +438,9 @@ h4 {
 .add-item-button {
   border-radius: 24px !important;
 }
+
+.add-item-form {
+  border-radius: 24px;
+  background-color: #f1f1f1;
+  border-color: #ffffff;
+}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Location from './Location';
 import Donation from './Donation';
+import AddItemForm from './AddItemForm';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
 import GoogleMapDisplay from './GoogleMapDisplay';
@@ -33,6 +34,7 @@ export default function Main() {
           onClick={addDonation}>+ Add item</button>
         </div>
         <div className="donation-list mx-4">
+          <AddItemForm />
           {donations.map(donation => (
             <Donation 
               key={donation.id}
