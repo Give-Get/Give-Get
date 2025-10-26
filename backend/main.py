@@ -1010,7 +1010,7 @@ def api_create_user(user: UserModel):
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail={"error": str(e), "context": "user creation"}
+            detail={"error": str(e), "context": "user creation", "hint": f"Likely failing variable: {repr(e.args)}"},
         )
 
 
