@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Location from './Location';
 import Donation from './Donation';
+import AddItemForm from './AddItemForm';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
-import GoogleMapDisplay from '../GoogleMapDisplay';
+import GoogleMapDisplay from './GoogleMapDisplay';
 
 const locations = {
   "4": {
@@ -99,6 +100,8 @@ export default function Main() {
   const [routeToId, setRouteToId] = useState(null);
 
   const navigate = useNavigate();
+  const [donations, setDonations] = useState([]);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   function handleLogout() {
     localStorage.removeItem('auth');
@@ -140,19 +143,53 @@ export default function Main() {
 
   console.log(userLocation)
 
+  async function addDonation(donation) {
+    // normalize/ensure fields and create an id
+    const newDonation = {
+      id: Date.now(),
+      itemName: donation.itemName || 'Unnamed item',
+      quantity: Number(donation.quantity) || 1,
+      size: donation.size || '',
+      category: donation.category || '',
+      description: donation.description || ''
+    };
+
+    setDonations(prev => [...prev, newDonation]);
+    // hide the form and return to the list view
+    setShowAddForm(false);
+  }
 
   return (
     <div className="main-container">
       <aside className="sidebar">
         <div className="sidebar-top">
           <h4 className="mb-3">What items are you donating?</h4>
-          <button className="btn btn-primary">+ Add item</button>
-          <div className="donation-list pt-3">
-            <Donation />
-            <Donation />
-            <Donation />
-          </div>
+          {showAddForm ? (
+            <AddItemForm onAdd={addDonation} />
+          ) : (
+            <button
+              className="btn btn-primary add-item-button"
+              onClick={() => setShowAddForm(true)}
+            >
+              + Add item
+            </button>
+          )}
         </div>
+
+        {!showAddForm && (
+          <div className="donation-list mx-4">
+            {donations.map(donation => (
+              <Donation 
+                key={donation.id}
+                itemName={donation.itemName}
+                quantity={donation.quantity}
+                size={donation.size}
+                category={donation.category}
+                description={donation.description}
+              />
+            ))}
+          </div>
+        )}
 
         <div className="sidebar-bottom mt-auto">
           <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>Logout</button>
@@ -173,9 +210,24 @@ export default function Main() {
 
           <div className="horizontal-bar card">
             <div className="card-body">
-              <h4 className="mb-2">Matched Locations</h4>
-              <div className="location-list">
-                  <Location />
+              <h4 className="mb-2">Top Matches within 1 mi</h4>
+              <div className="location-list pt-2">
+                <Location 
+                    name="Location 1"
+                    score={"96%"}
+                    />
+                <Location 
+                    name="Location 2"
+                    score={"85%"}/>
+                <Location 
+                    name="Location 3"
+                    score={"91%"}/>
+                <Location 
+                    name="Location 4"
+                    score={"89%"}/>
+                <Location 
+                    name="Location 5"
+                    score={"82%"}/>
               </div>
             </div>
           </div>
