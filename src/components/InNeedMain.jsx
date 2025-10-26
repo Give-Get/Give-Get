@@ -7,12 +7,12 @@ import GoogleMapDisplay from './GoogleMapDisplay';
 
 async function getPeopleMatches(requestData) {
   const API_URL = `${process.env.REACT_APP_API_URL}/api/match-people`;
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(requestData)
-  });
-  return await response.json();
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestData)
+    });
+    return await response.json();
 }
 
 export default function InNeedMain() {
@@ -80,7 +80,7 @@ export default function InNeedMain() {
     }
   }, []);
 
-  const fetchMatches = async () => {
+    const fetchMatches = async () => {
     if (!userLocation) {
       return;
     }
@@ -96,12 +96,12 @@ export default function InNeedMain() {
     if (!personFiltersPayload.immigration_status) delete personFiltersPayload.immigration_status;
 
     const requestPayload = {
-      location: userLocation,
+        location: userLocation,
       radius: radius,
       person_filters: personFiltersPayload
-    };
+      };
 
-    try {
+      try {
       const results = await getPeopleMatches(requestPayload);
       console.log("✅ SUCCESS - Matches received!");
       console.log("Number of organizations matched:", Object.keys(results.ranked_organizations || {}).length);
@@ -470,7 +470,7 @@ export default function InNeedMain() {
       </aside>
 
       <main className="main-content">
-          <img
+        <img
           src="/assets/home.svg"
           alt="Home"
           onClick={() => navigate('/')}
