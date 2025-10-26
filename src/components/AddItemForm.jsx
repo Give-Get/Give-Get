@@ -35,7 +35,7 @@ function AddItemForm({ onAdd }) {
     return (
         <form onSubmit={handleSubmit} className="add-item-form card card-body mb-3">
             <div className="row g-2 align-items-end">
-                <div className="col-12">
+                <div className="col-6 col-md-8">
                     <label htmlFor="category" className="form-label small">Category</label>
                     <select
                         id="category"
@@ -47,19 +47,6 @@ function AddItemForm({ onAdd }) {
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
                     </select>
-                </div>
-
-                <div className="col-12 col-md-12">
-                    <label htmlFor="itemName" className="form-label small">Item Name</label>
-                    <input
-                        id="itemName"
-                        type="text"
-                        className="form-control"
-                        required
-                        placeholder="e.g., Men's T-shirt"
-                        value={itemName}
-                        onChange={e => setItemName(e.target.value)}
-                    />
                 </div>
 
                 <div className="col-6 col-md-4">
@@ -74,19 +61,32 @@ function AddItemForm({ onAdd }) {
                     />
                 </div>
 
-                <div className="col-6 col-md-8">
+                <div className="col-12 col-md-12">
+                    <label htmlFor="itemName" className="form-label small">Item Name</label>
+                    <input
+                        id="itemName"
+                        type="text"
+                        className="form-control"
+                        required
+                        placeholder="E.g. Men's T-shirt"
+                        value={itemName}
+                        onChange={e => setItemName(e.target.value)}
+                    />
+                </div>
+
+                <div className="col-12 col-md-12">
                     <label htmlFor="description" className="form-label small">Description</label>
                     <input
                         id="description"
                         type="text"
                         className="form-control"
-                        placeholder="Optional - size, condition, notes"
+                        placeholder="E.g. size, condition, notes"
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                     />
                 </div>
 
-                <div className="col-12 d-flex justify-content-center mt-2">
+                <div className="col-12 d-flex justify-content-center mt-3">
                     <button type="submit" className="btn btn-primary add-item-button">Submit</button>
                 </div>
             </div>
