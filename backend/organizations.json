@@ -8,7 +8,6 @@
     "ammenities": {
         "accessible": false,
         "lgbtq_only": false,
-
         "male_only": false,
         "female_only": false,
         "all_gender": false,
@@ -29,10 +28,10 @@
         "showers": true,
         "id_required": false
     },
-    "needs": [
-      {"category":"food", "item": "canned beans", "needed": 200, "have": 150, "urgency": "high"},
-      {"category":"clothing", "item": "jackets", "needed": 50, "have": 30, "urgency": "low"}
-    ],
+    "needs": {
+      "canned_beans": {"category":"food", "needed": 200, "have": 150, "urgency": "high"},
+      "jackets": {"category":"clothing", "needed": 50, "have": 30, "urgency": "low"}
+    },
     "hours": {
       "monday": "0000-2359",
       "tuesday": "0000-2359",
