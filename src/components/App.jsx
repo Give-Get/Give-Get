@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Login';
 import Main from './Main';
 import OrganizationsPage from '../OrganizationsPage';
+import DonorPage from './DonorPage';
 
 /** Simple auth guard using localStorage flag 'auth' (replace with real auth) */
 function RequireAuth({ children }) {
@@ -17,6 +18,7 @@ export default function App() {
       <Route path="/" element={<RequireAuth><Main /></RequireAuth>} />
       <Route path="/register-organization" element={<OrganizationsPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="/register-donor" element={<DonorPage />} />
     </Routes>
   );
 }

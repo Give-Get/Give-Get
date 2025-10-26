@@ -63,7 +63,7 @@ export default function Login() {
               </div>
             </form>
             <div className="text-center mt-3 small text-muted">
-                      Don't have an account? <a href="#signup" className="text-decoration-none">Sign up</a>
+                      Don't have an account? <a href="/register-donor" className="text-decoration-none" style={{ color: '#1db95eff' }}>Sign up</a>
             </div>
           </div>
 
