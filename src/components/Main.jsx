@@ -90,6 +90,28 @@ const locations = {
   }
 }
 
+async function getSupplyMatches(requestData) {
+  // Use your Render URL from environment variables
+  // Make sure to create a .env.local file with REACT_APP_API_URL=https://your-service-name.onrender.com
+  const API_URL = `${process.env.REACT_APP_API_URL}/api/match-supplies`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestData)
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Something went wrong");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch matches:", error);
+    throw error;
+  }
+}
+
 export default function Main() {
   const [userLocation, setUserLocation] = useState({ lat: 40.8148, lng: -77.8653 });
 
@@ -102,6 +124,11 @@ export default function Main() {
   const navigate = useNavigate();
   const [donations, setDonations] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
+
+  const [radius, setRadius] = useState(1); // Default to 1 mile to match your <h4>
+  const [locations, setLocations] = useState(null); // This will hold the API results
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   function handleLogout() {
     localStorage.removeItem('auth');
@@ -143,6 +170,47 @@ export default function Main() {
 
   console.log(userLocation)
 
+  useEffect(() => {
+    // Don't run if we don't have the user's location yet
+    if (!userLocation) return;
+
+    const fetchMatches = async () => {
+      setLoading(true);
+      setError(null);
+      
+      // Format the 'donations' state to match the API's 'donor_items' schema
+      const donorItemsPayload = (donations && donations.length > 0)
+        ? { items: donations.map(d => ({
+              category: d.category,
+              item: d.itemName,
+              quantity: d.quantity
+            })) }
+        : null; // Send null if items array is empty
+
+      const requestData = {
+        location: userLocation,
+        radius: radius,
+        donor_items: donorItemsPayload
+      };
+
+      try {
+        const data = await getSupplyMatches(requestData);
+        // Store the ranked_organizations object in your 'locations' state
+        setLocations(data.ranked_organizations); 
+      } catch (err) {
+        setError(err.message || "An unknown error occurred.");
+        setLocations(null); // Clear old results on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatches();
+    
+  // Re-run this effect if any of these three dependencies change
+  }, [donations, radius, userLocation]);
+
+
   async function addDonation(donation) {
     // normalize/ensure fields and create an id
     const newDonation = {
@@ -164,7 +232,10 @@ export default function Main() {
   }
 
   // Derive the selected location object for convenience
-  const selectedLocation = selectedLocationId ? locations[selectedLocationId] : null;
+  const selectedLocation =
+  selectedLocationId && locations
+    ? locations[selectedLocationId]
+    : null;
 
   return (
     <div className="main-container">
@@ -182,7 +253,7 @@ export default function Main() {
               </button>
             )}
           </div>
-        </div>
+        </div> 
 
         <div className="donation-list mx-4">
           {!showAddForm && (
