@@ -3,3 +3,5 @@ uvicorn==0.24.0
 gunicorn==23.0.0
 pydantic==2.7.1
 requests==2.31.0
+pymongo==4.15.3
+geopy==2.4.1
