@@ -3,7 +3,6 @@ import Location from './Location';
 import Donation from './Donation';
 import AddItemForm from './AddItemForm';
 import { useNavigate } from 'react-router-dom';
-import { CSSTransition } from 'react-transition-group';
 import '../App.css';
 import GoogleMapDisplay from './GoogleMapDisplay';
 
