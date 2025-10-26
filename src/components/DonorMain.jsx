@@ -95,9 +95,10 @@ export default function Main() {
       setError(null);
      
       // Format the 'donations' state to match the API's 'donor_items' schema
+      // Normalize categories to lowercase for consistent matching
       const donorItemsPayload = (donations && donations.length > 0)
         ? { items: donations.map(d => ({
-              category: d.category,
+              category: (d.category || '').toLowerCase(),
               item: d.itemName,
               quantity: d.quantity
             })) }
