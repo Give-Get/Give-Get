@@ -697,6 +697,18 @@ def match_people(request: PeopleMatchRequest):
     ```
     """
     try:
+        print("\n" + "="*80)
+        print("📥 BACKEND - /api/match-people endpoint called")
+        print("="*80)
+        print(f"📍 Location: {request.location}")
+        print(f"📏 Radius: {request.radius}")
+        print(f"👤 Person filters present: {request.person_filters is not None}")
+        if request.person_filters:
+            print(f"   needs_housing: {request.person_filters.needs_housing}")
+            print(f"   age: {request.person_filters.age}")
+            print(f"   gender: {request.person_filters.gender}")
+        print("="*80)
+        
         # Convert Pydantic models to dicts
         location_dict = request.location.dict()
         person_filters_dict = request.person_filters.dict() if request.person_filters else None
@@ -707,6 +719,9 @@ def match_people(request: PeopleMatchRequest):
             radius=request.radius,
             person_filters=person_filters_dict
         )
+        
+        print(f"\n✅ Returning {len(ranked_orgs)} organizations")
+        print("="*80 + "\n")
         
         return {
             "success": True,

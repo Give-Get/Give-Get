@@ -351,12 +351,13 @@ def _check_age_range(person: dict, shelter: dict) -> bool:
         return False  # Can't verify without age
     
     ammenities = shelter.get("ammenities", {})
-    min_age = ammenities.get("age_minimum", None)
-    max_age = ammenities.get("age_maximum", None)
+    min_age = ammenities.get("age_minimum")
+    max_age = ammenities.get("age_maximum")
     
-    if min_age and person_age < min_age:
+    # Handle None and 0 values
+    if min_age is not None and min_age > 0 and person_age < min_age:
         return False
-    if max_age and person_age > max_age:
+    if max_age is not None and max_age > 0 and person_age > max_age:
         return False
     
     return True
