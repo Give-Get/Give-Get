@@ -37,10 +37,10 @@ export default function Login() {
               </button>
               <button
                 type="button"
-                className={`btn ${type === 'center' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                onClick={() => setType('center')}
+                className={`btn ${type === 'organization' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                onClick={() => setType('organization')}
               >
-                Center
+                Organization
               </button>
             </div>
 
@@ -65,7 +65,7 @@ export default function Login() {
           </div>
 
           <div className="card-footer text-center small text-muted">
-            Signing in as <strong>{type === 'individual' ? 'Individual' : 'Center'}</strong>
+            Signing in as <strong>{type === 'individual' ? 'Individual' : 'Organization'}</strong>
           </div>
         </div>
       </main>
