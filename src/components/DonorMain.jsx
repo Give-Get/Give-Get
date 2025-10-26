@@ -45,7 +45,7 @@ export default function Main() {
   const [locations, setLocations] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   function handleLogout() {
     localStorage.removeItem('auth');
     navigate('/login', { replace: true });
@@ -202,7 +202,8 @@ export default function Main() {
               userLocation={userLocation}
               selectedLocationId={selectedLocationId}
               onMarkerClick={handleSelectLocation}
-              onInfoClose={handleClearRoute}/>
+              onInfoClose={handleClearRoute}
+              />
             </div>
           </div>
         </div>

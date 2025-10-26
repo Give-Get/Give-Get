@@ -138,9 +138,9 @@ export default function InNeedMain() {
     try {
       const results = await getPeopleMatches(requestPayload);
       console.log("✅ SUCCESS - Matches received!");
-      console.log("Number of organizations matched:", Object.keys(results || {}).length);
+      console.log("Number of organizations matched:", Object.keys(results.ranked_organizations || {}).length);
       console.log("Results:", results);
-      setLocations(results);
+      setLocations(results.ranked_organizations);
       } catch (err) {
       console.error("❌ ERROR fetching matches:", err);
       setLocations(null);
@@ -493,16 +493,16 @@ export default function InNeedMain() {
       </aside>
 
       <main className="main-content">
-        <div className="main-content-wrapper">
-          <div className="map-wrapper">
-            <div className="map-container">
+      <div className="content-column">
+          <div className="media-wrap">
+            <div className="media-map">
               <GoogleMapDisplay
               routeToId={routeToId}
               locations={locations}
               userLocation={userLocation}
               selectedLocationId={selectedLocationId}
               onMarkerClick={handleSelectLocation}
-                onInfoClose={handleClearRoute}
+              onInfoClose={handleClearRoute}
               />
             </div>
           </div>
