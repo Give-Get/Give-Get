@@ -1,7 +1,7 @@
 {
   "4": {
     "type": {"shelter": true, "charity": false},
-    "EIN": 6,
+    "EIN": "6",
     "name": "Shelter1",
     "address": "123 Shelter St",
     "location": { "lat": 0, "lng": 0},
@@ -52,7 +52,7 @@
   },
   "1": {
     "type": {"shelter": false, "charity": true},
-    "EIN": 0,
+    "EIN": "0",
     "name": "Centre County Food Bank",
     "address": "123 Main St, State College, PA",
     "location": { "lat": 40.793, "lng": -77.86 },
