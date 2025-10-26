@@ -43,7 +43,9 @@ export default function Main() {
 
   const [radius, setRadius] = useState(1);
   const [locations, setLocations] = useState(null);
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
   function handleLogout() {
     localStorage.removeItem('auth');
     navigate('/login', { replace: true });
