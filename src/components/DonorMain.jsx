@@ -43,7 +43,9 @@ export default function Main() {
 
   const [radius, setRadius] = useState(1);
   const [locations, setLocations] = useState(null);
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
   function handleLogout() {
     localStorage.removeItem('auth');
     navigate('/login', { replace: true });
@@ -91,7 +93,7 @@ export default function Main() {
     const fetchMatches = async () => {
       setLoading(true);
       setError(null);
-      
+     
       // Format the 'donations' state to match the API's 'donor_items' schema
       const donorItemsPayload = (donations && donations.length > 0)
         ? { items: donations.map(d => ({
