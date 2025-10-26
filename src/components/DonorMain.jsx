@@ -41,10 +41,8 @@ export default function Main() {
   const [donations, setDonations] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
 
-  const [radius, setRadius] = useState(1); // Default to 1 mile to match your <h4>
-  const [locations, setLocations] = useState(null); // This will hold the API results
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [radius, setRadius] = useState(1);
+  const [locations, setLocations] = useState(null);
 
   function handleLogout() {
     localStorage.removeItem('auth');
