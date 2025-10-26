@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function AddItemForm({ onAdd }) {
+function AddItemForm({ onAdd, onBack }) {
     const [category, setCategory] = useState('Clothing');
     const [itemName, setItemName] = useState('');
     const [quantity, setQuantity] = useState('1');
@@ -86,8 +86,33 @@ function AddItemForm({ onAdd }) {
                     />
                 </div>
 
-                <div className="col-12 d-flex justify-content-center mt-3">
-                    <button type="submit" className="btn btn-primary add-item-button">Submit</button>
+                <div className="col-12 d-flex align-items-center mt-3" style={{ minHeight: '40px', position: 'relative' }}>
+                    {onBack && (
+                        <button
+                            type="button"
+                            onClick={onBack}
+                            className="back-arrow-btn"
+                            aria-label="Back"
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                padding: 0,
+                                marginRight: '10px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                                position: 'absolute',
+                                left: 0,
+                            }}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M15 18L9 12L15 6" stroke="#adb5bd" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
+                    )}
+                    <div className="flex-grow-1 d-flex justify-content-center">
+                        <button type="submit" className="btn btn-primary add-item-button">Submit</button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -95,3 +120,18 @@ function AddItemForm({ onAdd }) {
 }
 
 export default AddItemForm;
+
+// Add subtle hover effect for the back arrow button
+const style = document.createElement('style');
+style.innerHTML = `
+    .back-arrow-btn svg path {
+        transition: stroke 0.2s;
+    }
+    .back-arrow-btn:hover svg path {
+        stroke: #2ee079; /* Bootstrap btn-success green */
+    }
+`;
+if (typeof document !== 'undefined' && !document.getElementById('add-item-form-back-arrow-style')) {
+    style.id = 'add-item-form-back-arrow-style';
+    document.head.appendChild(style);
+}

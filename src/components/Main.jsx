@@ -44,7 +44,7 @@ export default function Main() {
           <h4 className="mb-3">What items are you donating?</h4>
           <div style={{ position: 'relative', width: '100%' }}>
             {showAddForm ? (
-              <AddItemForm onAdd={addDonation} />
+              <AddItemForm onAdd={addDonation} onBack={() => setShowAddForm(false)}/>
             ) : (
               <button
                 className="btn btn-primary add-item-button"
