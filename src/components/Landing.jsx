@@ -43,7 +43,12 @@ export default function Landing() {
       <section className="landing-card mission-card">
         <div className="mission-content">
           <div className="mission-text-card">
-            <h2>Our Mission</h2>
+            <h2>
+              <svg width="40" height="40" viewBox="0 -1 32 32" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '12px' }}>
+                <path d="M126,882 C122.667,882 119.982,883.842 117.969,886.235 C116.013,883.76 113.333,882 110,882 C105.306,882 102,886.036 102,890.438 C102,892.799 102.967,894.499 104.026,896.097 L116.459,911.003 C117.854,912.312 118.118,912.312 119.513,911.003 L131.974,896.097 C133.22,894.499 134,892.799 134,890.438 C134,886.036 130.694,882 126,882" fill="#2ee079" transform="translate(-102, -882)" />
+              </svg>
+              Our Mission
+            </h2>
             <p className="card-text">
               Give and Get connects people in need with shelters and charities, while efficiently matching donors with organizations that need their contributions. We use smart matching algorithms to ensure resources reach those who need them most.
             </p>
@@ -61,7 +66,12 @@ export default function Landing() {
             <img src="/assets/imgs/papaioannou-kostas-tysecUm5HJA-unsplash.jpg" alt="Our Core Values" />
           </div>
           <div className="values-text-card">
-            <h2>Our Core Values</h2>
+            <h2>
+              <svg width="40" height="40" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '12px' }}>
+                <path d="M289.879,21.713H70.121C25.785,21.713,0,53.106,0,91.833c0,38.725,31.391,70.122,70.121,70.122c4.133,0,8.175-0.383,12.111-1.071c12.633-3.485,21.939-15.072,21.939-28.799c0-16.479-13.404-29.884-29.883-29.884V82.923c27.108,0,49.16,22.055,49.16,49.162c0,21.877-14.367,40.442-34.159,46.798v159.405h42.999v-101.02c0-7.588,6.149-13.74,13.737-13.74c7.583,0,13.731,6.152,13.731,13.74v101.02h40.484v-101.02c0-7.588,6.148-13.74,13.732-13.74c7.587,0,13.736,6.152,13.736,13.74v101.02h42.999V178.979c-20.262-6.071-35.073-24.876-35.073-47.089c0-27.107,22.053-49.16,49.159-49.16v19.28c-16.478,0-29.88,13.404-29.88,29.88c0,13.99,9.663,25.761,22.665,28.993v-0.027c3.993,0.708,8.101,1.098,12.298,1.098c38.73,0,70.121-31.397,70.121-70.122C360,53.106,334.215,21.713,289.879,21.713z" fill="#2ee079" />
+              </svg>
+              Our Core Values
+            </h2>
             <div className="values-list">
               <div className="value-item">
                 <h3>Transparency</h3>
