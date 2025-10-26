@@ -157,7 +157,7 @@ export default function Main() {
     <div className="main-container">
 <aside className="sidebar">
         <div className="sidebar-top">
-          <h4 className="mb-3">What items are you donating?</h4>
+          <h4 className="mb-3">What are you looking for?</h4>
           <div style={{ position: 'relative', width: '100%' }}>
             {showAddForm ? (
               <AddItemForm onAdd={addDonation} onBack={() => setShowAddForm(false)}/>
