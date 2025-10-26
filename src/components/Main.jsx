@@ -205,7 +205,7 @@ export default function Main() {
       <main className="main-content">
         <div className="content-column">
           <div className="media-wrap">
-            <div className="media-map">
+            
               <GoogleMapDisplay
               routeToId={routeToId}
               locations={locations}
@@ -213,32 +213,32 @@ export default function Main() {
               selectedLocationId={selectedLocationId}
               onMarkerClick={handleSelectLocation}
               onInfoClose={handleClearRoute}/>
-            </div>
+            
           </div>
         </div>
       </main>
 
-      <div className="horizontal-bar card">
-        <div className="card-body">
-          <h4 className="mb-2">Top Matches within 1 mi</h4>
-          <div className="location-list pt-2">
-            {locations && Object.keys(locations).map(locationId => {
-              const location = locations[locationId];
-              
-              return (
-                <Location 
-                  key={locationId}
-                  name={location.name}
-                  score={"??%"} 
-                  image={'/assets/imgs/img1.png'}
-                  ID = {locationId}
-                  onSelect={handleSelectLocation}
-                />
-              );
-            })}
+          <div className="horizontal-bar card">
+            <div className="card-body">
+              <h4 className="mb-2">Top Matches within 1 mi</h4>
+              <div className="location-list pt-2">
+                {locations && Object.keys(locations).map(locationId => {
+                  const location = locations[locationId];
+                  
+                  return (
+                    <Location 
+                      key={locationId}
+                      name={location.name}
+                      score={"??%"} 
+                      image={'/assets/imgs/img1.png'}
+                      ID = {locationId}
+                      onSelect={handleSelectLocation}
+                    />
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
   );
 }

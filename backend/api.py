@@ -13,6 +13,7 @@ import os
 import json
 from pathlib import Path
 
+
 # Add backend directory to path for imports
 backend_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, backend_path)
@@ -26,6 +27,17 @@ from validation_service import VerificationService, Organization
 
 # Initialize verification service
 verifier = VerificationService()
+
+from db import (
+    create_user,
+    create_organization,
+    update_user,
+    update_organization,
+    collect_user,
+    collect_organization,
+    get_orgs_within_radius,
+    get_account_id
+)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -138,6 +150,127 @@ class SupplyMatchRequest(BaseModel):
         description="Items to donate. If omitted, returns all nearby orgs sorted by distance"
     )
 
+#======= DB Pydantic Models ========
+class OrgType(BaseModel):
+    charity: bool
+    shelter: bool
+
+
+class ContactInfo(BaseModel):
+    phone: str
+    email: str
+    website: Optional[str] = ""
+
+
+class Location(BaseModel):
+    lat: float
+    lng: float
+
+
+class NeedItem(BaseModel):
+    category: str
+    needed: int
+    have: int
+    urgency: str
+
+
+class Ammenities(BaseModel):
+    accessible: Optional[bool] = False
+    lgbtq_only: Optional[bool] = False
+    male_only: Optional[bool] = False
+    female_only: Optional[bool] = False
+    all_gender: Optional[bool] = False
+    pet_friendly: Optional[bool] = False
+    languages: Optional[List[str]] = ["english"]
+    family_rooming: Optional[bool] = False
+    beds_available: Optional[int] = 0
+    medical_support: Optional[bool] = False
+    counseling_support: Optional[bool] = False
+    fees: Optional[int] = 0
+    age_minimum: Optional[int] = 0
+    age_maximum: Optional[int] = 120
+    veteran_only: Optional[bool] = False
+    immigrant_only: Optional[bool] = False
+    refugee_only: Optional[bool] = False
+    good_criminal_record_standing: Optional[bool] = False
+    sobriety_required: Optional[bool] = False
+    showers: Optional[bool] = False
+    id_required: Optional[bool] = False
+
+
+class Hours(BaseModel):
+    monday: str
+    tuesday: str
+    wednesday: str
+    thursday: str
+    friday: str
+    saturday: str
+    sunday: str
+
+
+# ---------- Main Organization Model ----------
+
+class OrganizationModel(BaseModel):
+    _id: Optional[str]
+    image_url: Optional[str] = ""
+    type: OrgType
+    EIN: str
+    name: str
+    address: str
+    location: Location
+    ammenities: Ammenities
+    needs: Dict[str, NeedItem]
+    hours: Hours
+    description: Optional[str] = ""
+    contact: ContactInfo
+    verified: bool
+    timestamp: Optional[str] = ""
+
+    class Config:
+        extra = "allow"
+
+class DonorItem(BaseModel):
+    item: str
+    quantity: int
+    description: Optional[str] = ""
+    category: str
+
+class UserModel(BaseModel):
+    _id: Optional[str]
+    name: str
+    charity: bool
+    shelter: bool
+    donor: bool
+    phone_number: str
+    email: str
+    password: str
+    items_donating: Optional[List[DonorItem]] = None
+
+    class Config:
+        extra = "allow"
+
+
+# ---------- Update Request ----------
+class UpdateRequest(BaseModel):
+    _id: str
+    new_json: Dict[str, Any]
+
+
+# ---------- Radius Query ----------
+class RadiusOrgType(BaseModel):
+    shelter: bool
+    charity: bool
+
+class RadiusQuery(BaseModel):
+    location: Location
+    radius: float
+    org_type: Optional[RadiusOrgType] = None
+
+
+# ---------- Login Request ----------
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 # ==================== ORGANIZATION MODELS (from validation1.py) ====================
 
@@ -745,6 +878,166 @@ def health_check():
         }
     }
 
+# ==================== NEW DATABASE ROUTES ====================
+
+# ---------- USERS ----------
+@app.post("/api/user/create")
+def api_create_user(user: UserModel):
+    """
+    Create a new user (charity, shelter, or donor).
+    The JSON body must follow the UserModel schema exactly as defined in MongoDB.
+    """
+    try:
+        create_user(user.dict())
+        return {
+            "status": "success",
+            "message": f"User '{user.name}' created successfully.",
+            "user_id": user._id or "auto-assigned"
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": str(e), "context": "user creation"}
+        )
+
+
+@app.put("/api/user/update")
+def api_update_user(req: UpdateRequest):
+    """
+    Update an existing user's information.
+    Input must include "_id" and "new_json".
+    """
+    try:
+        update_user(req._id, req.new_json)
+        return {
+            "status": "success",
+            "message": f"User {req._id} updated successfully."
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": str(e), "context": "user update"}
+        )
+
+
+@app.get("/api/user/{user_id}")
+def api_get_user(user_id: str):
+    """Retrieve a user document by _id."""
+    try:
+        user = collect_user(user_id)
+        return {"status": "success", "data": user}
+    except Exception as e:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": str(e), "context": "user fetch"}
+        )
+
+
+# ---------- ORGANIZATIONS ----------
+@app.post("/api/org/create")
+def api_create_org(org: OrganizationModel):
+    """
+    Create a new organization.
+    The request body must match OrganizationModel structure.
+    """
+    try:
+        create_organization(org.dict())
+        return {
+            "status": "success",
+            "message": f"Organization '{org.name}' created successfully.",
+            "org_id": org._id or "auto-assigned"
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": str(e), "context": "organization creation"}
+        )
+
+
+@app.put("/api/org/update")
+def api_update_org(req: UpdateRequest):
+    """
+    Update an existing organization by _id.
+    Input must include "_id" and "new_json".
+    """
+    try:
+        update_organization(req._id, req.new_json)
+        return {
+            "status": "success",
+            "message": f"Organization {req._id} updated successfully."
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": str(e), "context": "organization update"}
+        )
+
+
+@app.get("/api/org/{org_id}")
+def api_get_org(org_id: str):
+    """Retrieve an organization by _id."""
+    try:
+        org = collect_organization(org_id)
+        return {"status": "success", "data": org}
+    except Exception as e:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": str(e), "context": "organization fetch"}
+        )
+
+
+# ---------- RADIUS SEARCH ----------
+@app.post("/api/orgs/within_radius")
+def api_get_orgs_within_radius(query: RadiusQuery):
+    """
+    Query organizations (charities/shelters) within a given radius (in miles)
+    of the provided location coordinates.
+    """
+    try:
+        org_type = query.org_type or {"shelter": True, "charity": True}
+        results = get_orgs_within_radius(
+            query.location.dict(),
+            query.radius,
+            org_type
+        )
+
+        formatted = [
+            {
+                "distance_miles": round(distance, 3),
+                "organization": org
+            }
+            for distance, org in results
+        ]
+        return {
+            "status": "success",
+            "count": len(formatted),
+            "results": formatted
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"error": str(e), "context": "radius query"}
+        )
+
+
+# ---------- ACCOUNT LOGIN ----------
+@app.post("/api/account/get_id")
+def api_get_account_id(req: LoginRequest):
+    """
+    Authenticate a user by email/password and return their _id.
+    Raises 401 if invalid credentials.
+    """
+    try:
+        account_id = get_account_id(req.email, req.password)
+        return {
+            "status": "success",
+            "account_id": account_id
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=401,
+            detail={"error": str(e), "context": "login"}
+        )
 
 # ==================== RUN SERVER ====================
 
