@@ -114,11 +114,13 @@ export default function Main() {
         // Store the ranked_organizations object in your 'locations' state
         setLocations(data.ranked_organizations); 
       } catch (err) {
+        console.error("❌ API CALL FAILED");
+        console.error("Error message:", err.message);
+        console.error("Request data that failed:", requestData);
         setError(err.message || "An unknown error occurred.");
-        setLocations(null); // Clear old results on error
-      } finally {
-        setLoading(false);
-      }
+        setLocations(null);
+      } 
+      setLoading(false);
     };
 
     fetchMatches();
