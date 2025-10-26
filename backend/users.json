@@ -1,5 +1,6 @@
-{
-    "1": {
+[
+    {
+        "_id": "1",
         "name": "Centre County Food Bank",
         "charity": true,
         "shelter": false,
@@ -7,16 +8,19 @@
         "phone_number": "814-555-1234",
         "email": "info@foodbank.org"
     },
-    "2": {
+    {
+        "_id": "2",
         "name": "Alice", 
         "charity": false,
         "shelter": false,
         "donor": true,
-        "items_donating": [{"item": "jackets", "quantity":1, "description": "..."}],
+        "items_donating": [{"item": "jackets", "quantity":1, "description": "...", "category": "clothing"}],
         "phone_number":"123-545-9876",
-        "email": "alice@gmail.com"
+        "email": "alice@gmail.com",
+        "location": { "lat": 0, "lng": 0}
     },
-    "4": {
+    {
+        "_id": "4",
         "name": "Shelter1", 
         "charity": false,
         "shelter": true,
@@ -24,4 +28,4 @@
         "phone_number": "123-456-7890",
         "email": "shelteremail@domain.tld"
     }
-}
+]
