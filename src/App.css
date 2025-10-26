@@ -325,6 +325,8 @@ h4 {
   padding-bottom: 0; /* remove bottom padding so bottoms align */
   flex: 1;
   min-height: 0;
+  height: 100%;
+  position: relative; /* for overlay scrollbar */
   /* Custom thin overlay scrollbar */
   scrollbar-width: thin;           /* Firefox */
   scrollbar-color: #adb5bd #f8f9fa; /* Firefox */
@@ -403,7 +405,7 @@ h4 {
 .horizontal-bar .card-body {
   padding-bottom: 0;
   height: 100%;
-  overflow: hidden;
+  overflow: visible; /* allow overlay scrollbar to show */
   display: flex;
   flex-direction: column;
 }
