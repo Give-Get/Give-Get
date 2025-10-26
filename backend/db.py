@@ -11,7 +11,7 @@ MONGO_URI = "mongodb+srv://praj:praj@give-and-get-data.undmkkl.mongodb.net/?appN
 client = MongoClient(MONGO_URI)
 db = client['HackPSU-User-Data']
 users = db.users
-orgs = db.orgs
+orgs = db.organizations
 app_stats = db.app_statistics 
 
 
@@ -23,60 +23,94 @@ def update_database(id:str, new_json:dict, type:str):
     id: id of user or org you want to change in users or orgs database
     type: is equal to either "users" or "organizations"
     """
-    return
+    collection = db.users if type == "users" else db.organizations
 
-def update_users(id:str, new_json:dict):
+    # Ensure the new JSON includes the same _id
+    if "_id" not in new_json:
+        new_json["_id"] = id
+
+    result = collection.replace_one({"_id": id}, new_json, upsert=True)
+    return f"Updated {result.modified_count} document(s)."
+
+
+def update_user(id:str, new_json:dict):
     """
     id: id of user you want to change in users database
     things_changed: dictionary with changes you wish to make in ket,value format
     """
-    update_database(id, new_json, "users") #change "new_json" from the new_json parameter when done with func
+    update_database(id, new_json, "users") 
     return
 
-def update_organizations(id:str, new_json:dict):
+def update_organization(id:str, new_json:dict):
     """
     id: id of org you want to change in orgs database
     things_changed: dictionary with changes you wish to make in ket,value format
     """
-    update_database(id, new_json, "organizations") #change "new_json" from the new_json parameter when done with func
+    update_database(id, new_json, "organizations")
+    user_json =  {
+        "_id": f"{id}",
+        "name": new_json["name"], 
+        "charity": new_json["type"]["charity"],
+        "shelter": new_json["type"]["shelter"],
+        "donor": False,
+        "phone_number": new_json["contact"]["phone"],
+        "email": new_json["contact"]["email"]
+    }
+    update_database(id, user_json, "users")
     return
 
-def create_user(id):
+def create_user(new_json, id=None):
+    """
+    new_json: the json for the new user
+    id: will be a num if called by create_org()
+    """
+    if not id:
+        id = generate_id()
+    
+    update_user(id, new_json)
+    return
+
+def create_organization(new_json):
+    """
+    """
+    id = generate_id()
+
+    update_organization(id, new_json)
 
     pass
 
-def create_org(id):
-    
-    pass
+def generate_id():
+    collection = db.app_statistics
+    result = collection.find_one_and_update(
+        {"_id": "68fdc40a6d0189be52ed220f"},
+        {"$inc": {"next_id": 1}},
+        return_document=False
+    )
+    return str(result["next_id"])
 
-def add_user_and_org(type, object_json):
-    
-    return
-
-
-
-def collect_from_database(id:str, type:str):
-    """
-    id: id of user or org you want to change in users or orgs database
-    type: is equal to either "users" or "organizations"
-    """
-    return
-
-def colleect_users(id:str):
+def collect_user(id:str):
     """
     id: id of user you want to in users database
     things_changed: dictionary with changes you wish to make in ket,value format
     """
-    collect_from_database(id, "users") #change "new_json" from the new_json parameter when done with func
-    return
+    collection = db.users
+    user = collection.find_one({"_id": id})
+    if user:
+        return user
+    else:
+        raise ValueError(f"User with id {id} not found")
 
-def collect_organizations(id:str):
+def collect_organization(id:str):
     """
     id: id of org you want to change in orgs database
     things_changed: dictionary with changes you wish to make in ket,value format
     """
-    collect_from_database(id, "organizations") #change "new_json" from the new_json parameter when done with func
-    return
+    collection = db.organizations
+    organization = collection.find_one({"_id": id})
+    if organization:
+        return organization
+    else:
+        raise ValueError(f"User with id {id} not found")
 
 def get_orgs_within_radius(location, radius, org_type = None):
     """
@@ -84,26 +118,28 @@ def get_orgs_within_radius(location, radius, org_type = None):
     radius: (miles)
     org_type: type of organization you want to query: none by default
     """
-    lat, lon = location['lat'], location['long'] 
-    all_orgs_dict = list(db.organizations.find())[0]
+    lat, lon = location['lat'], location['lng'] 
+    all_orgs_dict = db.organizations.find()
 
     orgs_within_radius = []
-    for org_id, org_dict in all_orgs_dict.items:
-        org_lat, org_lon = get_org_coords(org_dict)
-        if calculate_distance(lat, lon, org_lat, org_lon) < radius and not None:
-            orgs_within_radius.append(org_dict)
+    for org in all_orgs_dict:
+        org_lat, org_lon = get_org_coords(org)
+        dist = calculate_distance(lat, lon, org_lat, org_lon)
+        if dist < radius:
+            orgs_within_radius.append((dist, org))
 
     if not org_type:
-        return orgs_within_radius
+        return [(d, {o["_id"]: o}) for d, o in orgs_within_radius]
     else: 
-        return [o for o in orgs_within_radius if o['type'][org_type] == True]
+        return [(d, {o["_id"]: o}) for d, o in orgs_within_radius if o['type'][org_type] == True]
 
 
 def get_org_coords(org_dict):
     if not isinstance(org_dict,dict):
         return None
+    
     lat = org_dict['location']['lat']
-    lon = org_dict['location']['lon']
+    lon = org_dict['location']['lng']
     return lat, lon
 
 
@@ -114,10 +150,22 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
     return R * 2 * atan2(sqrt(a), sqrt(1 - a))
 
+def get_account_id(email: str, password: str):
+    """
+    Retrieves the user's account _id based on email and password.
+    Returns the _id if a matching user is found, otherwise raises an error.
 
+    Args:
+        email (str): User's email address
+        password (str): Plaintext password (or hashed if stored that way)
 
-def order_by_matching():
-
-    return
-
-
+    Returns:
+        str: The user's _id as a string
+    """
+    collection = db.users
+    user = collection.find_one({"email": email, "password": password})
+    
+    if user:
+        return user["_id"]
+    else:
+        raise ValueError("Invalid email or password.")

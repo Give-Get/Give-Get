@@ -1,5 +1,7 @@
-{
-  "4": {
+[
+  {
+    "_id": "4",
+    "image_url": "",
     "type": {"shelter": true, "charity": false},
     "EIN": "6",
     "name": "Shelter1",
@@ -50,7 +52,8 @@
     "verified": true,
     "timestamp": ""
   },
-  "1": {
+  {
+    "_id": "1",
     "type": {"shelter": false, "charity": true},
     "EIN": "0",
     "name": "Centre County Food Bank",
@@ -79,4 +82,4 @@
     "verified": true,
     "timestamp": "2025-10-25T03:00:00Z"
   }
-}
+]

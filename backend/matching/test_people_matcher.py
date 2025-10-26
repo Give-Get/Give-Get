@@ -422,14 +422,14 @@ def test_no_filters():
     print(f"   Organizations found: {len(results)}")
     print(f"\n   Ranked Dictionary Output:")
     import json
-    print(f"   {json.dumps({k: {'name': v.get('name', 'Unknown'), 'score': v.get('score', 0)} for k, v in results.items()}, indent=6)}")
-    print(f"\n   Details (sorted by distance - closest first, all get score of 100):")
+    print(f"   {json.dumps({k: {'name': v.get('name', 'Unknown'), 'distance': v.get('score', 0)} for k, v in results.items()}, indent=6)}")
+    print(f"\n   Details (sorted by distance - closest first):")
     for rank, org_data in results.items():
         org_name = org_data.get("name", "Unknown")
         org_type = org_data.get("type", {})
         type_str = "Shelter" if org_type.get("shelter") else "Charity"
-        score = org_data.get("score", "N/A")
-        print(f"      Rank {rank}: {org_name} ({type_str}) - Score: {score}/100")
+        distance = org_data.get("score", "N/A")  # In this case, score = distance
+        print(f"      Rank {rank}: {org_name} ({type_str}) - {distance} miles")
 
 
 # ==================== RUN ALL TESTS ====================
