@@ -3,6 +3,7 @@ import Location from './Location';
 import Donation from './Donation';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
+import GoogleMapDisplay from '../GoogleMapDisplay';
 
 export default function Main() {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ export default function Main() {
         <div className="content-column">
           <div className="media-wrap">
             <div className="media-map">
-              <div className="media-placeholder">Google Maps Placeholder</div>
+              <GoogleMapDisplay />
             </div>
           </div>
 
